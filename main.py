@@ -118,37 +118,12 @@ class nmapScan:
         self.host = host
         self.nmap = nmap3.Nmap()
         if Debug == True:
-            self.result = {'192.168.180.108': {'osmatch': {}, 'ports': [
-                {'protocol': 'tcp', 'portid': '22', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '63',
-                 'service': {'name': 'ssh', 'product': 'OpenSSH', 'version': '7.4', 'extrainfo': 'protocol 2.0',
-                             'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:openbsd:openssh:7.4'}],
-                 'scripts': []},
-                {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '63',
-                 'service': {'name': 'http', 'product': 'nginx', 'version': '1.16.1', 'method': 'probed', 'conf': '10'},
-                 'cpe': [{'cpe': 'cpe:/a:igor_sysoev:nginx:1.16.1'}], 'scripts': []},
-                {'protocol': 'tcp', 'portid': '1337', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '63',
-                 'service': {'name': 'http', 'product': 'nginx', 'version': '1.16.1', 'method': 'probed', 'conf': '10'},
-                 'cpe': [{'cpe': 'cpe:/a:igor_sysoev:nginx:1.16.1'}], 'scripts': []},
-                {'protocol': 'tcp', 'portid': '5432', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '63',
-                 'service': {'name': 'postgresql', 'product': 'PostgreSQL DB', 'version': '9.6.0 or later',
-                             'servicefp': 'SF-Port5432-TCP:V=7.91%I=7%D=5/11%Time=609A9E00%P=x86_64-pc-linux-gnu%r(SMBProgNeg,8C,"E\\0\\0\\0\\x8bSFATAL\\0VFATAL\\0C0A000\\0Munsupported\\x20frontend\\x20protocol\\x2065363\\.19778:\\x20server\\x20supports\\x202\\.0\\x20to\\x203\\.0\\0Fpostmaster\\.c\\0L2071\\0RProcessStartupPacket\\0\\0");',
-                             'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:postgresql:postgresql'}],
-                 'scripts': []},
-                {'protocol': 'tcp', 'portid': '8080', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '63',
-                 'service': {'name': 'http', 'product': 'nginx', 'version': '1.16.1', 'method': 'probed', 'conf': '10'},
-                 'cpe': [{'cpe': 'cpe:/a:igor_sysoev:nginx:1.16.1'}], 'scripts': []}], 'hostname': [],
-                                               'macaddress': None,
-                                               'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '63'}},
-                           'stats': {'scanner': 'nmap',
-                                     'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/autorecon/reconscript/apptest/reconScript/nmap/nmap_scan.txt 192.168.180.108',
-                                     'start': '1620745604', 'startstr': 'Tue May 11 11:06:44 2021', 'version': '7.91',
-                                     'xmloutputversion': '1.05'},
-                           'runtime': {'time': '1620745733', 'timestr': 'Tue May 11 11:08:53 2021',
-                                       'summary': 'Nmap done at Tue May 11 11:08:53 2021; 1 IP address (1 host up) scanned in 129.50 seconds',
-                                       'elapsed': '129.50', 'exit': 'success'}}
+            self.result = {'192.168.180.55': {'osmatch': {}, 'ports': [{'protocol': 'tcp', 'portid': '21', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'ftp', 'product': 'FileZilla ftpd', 'version': '0.9.41 beta', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '135', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'msrpc', 'product': 'Microsoft Windows RPC', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '139', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'netbios-ssn', 'product': 'Microsoft Windows netbios-ssn', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '443', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'tunnel': 'ssl', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '445', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'microsoft-ds', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '3306', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'mysql', 'servicefp': 'SF-Port3306-TCP:V=7.91%I=7%D=5/11%Time=609AB58F%P=x86_64-pc-linux-gnu%r(NULL,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(GenericLines,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(RTSPRequest,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(DNSStatusRequestTCP,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(SSLSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TerminalServerCookie,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TLSSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(SMBProgNeg,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(LDAPSearchReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(oracle-tns,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(ms-sql-s,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server");', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '5040', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'unknown', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '7680', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'tcpwrapped', 'method': 'probed', 'conf': '8'}, 'scripts': []}], 'hostname': [], 'macaddress': None, 'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '127'}}, 'stats': {'scanner': 'nmap', 'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/autorecon/reconscript/apptest/reconscript/reconScript/nmap/nmap_scan.txt 192.168.180.55', 'start': '1620751621', 'startstr': 'Tue May 11 12:47:01 2021', 'version': '7.91', 'xmloutputversion': '1.05'}, 'runtime': {'time': '1620751924', 'timestr': 'Tue May 11 12:52:04 2021', 'summary': 'Nmap done at Tue May 11 12:52:04 2021; 1 IP address (1 host up) scanned in 303.83 seconds', 'elapsed': '303.83', 'exit': 'success'}}
         else:
+            print("[!] nmap scan is running...")
             self.result = self.nmap.nmap_version_detection(self.host, args="-p- -oN {}/nmap/nmap_scan.txt".format(
                 rootDir))  # -sV -p- -oN (rootDir/nmap_scant.txt) scan
+            print("[!] nmap scan has completed!")
             print(self.result)
         self.openPorts = []
         # print(self.result)
@@ -180,6 +155,8 @@ class nmapScan:
                     self.tBruteSSH()
                 else:
                     self.tBruteSSH()
+                pass
+            elif number == "445":
                 pass
             else:
                 pass

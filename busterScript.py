@@ -108,6 +108,27 @@ parser.add_argument('--output', type=str, metavar='', required=True,
 parser.add_argument('--wordlist', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
 args = parser.parse_args()
 
+#print(args.url)
+
+test = args.url
+
+port = test.split(":")[2]
+if port == "443":
+    new = test.split(":")[0] = "https"
+    old = test.split(":")[1]
+    old2 = test.split(":")[2]
+    combine = new+":" + old + ":" + old2
+
+
+
+    webbuster = pydirbuster.Pybuster(url=combine,wordfile=args.wordlist,logfile=args.output,codes=["200","201","202","301","302","405"])
+    try:
+        webbuster.Run()
+    except:
+        print("failed")
+else:
+    pass
+
 webbuster = pydirbuster.Pybuster(url=args.url,wordfile=args.wordlist,logfile=args.output,codes=["200","201","202","301","302","405"])
 
 try:
