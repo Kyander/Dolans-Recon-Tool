@@ -1,5 +1,14 @@
 This is a python3.8 tool that automates basic reconning.
 
+# What it does :
+
+1. does a full ports nmap scan.
+2. runs a gobuster on every webservice found.
+3. Extracts all HTML comments from each page found in gobuster.
+4. checks FTP anonymous login and checks if anonymous can upload files.
+5. option to bruteforce FTP with common users/pass list.
+6. option to bruteforce SSH with common users/pass list.
+7. outputs everything in a directory.
 
 # To Install :
 
