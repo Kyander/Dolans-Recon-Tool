@@ -56,4 +56,5 @@ if __name__ == '__main__':
     shareList = main(args.output, args.host)
     userOutputSMB(args.host,args.output)
     getFiles(shareList,args.output,args.host)
+    os.system("echo '[!] Done, you can now close this window'")
 

@@ -331,7 +331,7 @@ if __name__ == "__main__":
         print("{} Already exists, will output everything there.".format(rootDir))
         pass
     wordlist = args.wordlist
-    result = nmapScan(host, rootDir, Debug=True).check(wordlist)  # Regular portScan
+    result = nmapScan(host, rootDir, Debug=False).check(wordlist)  # Regular portScan
 
 
 
