@@ -7,6 +7,8 @@ import threading
 from ftplib import FTP
 from bs4 import BeautifulSoup, Comment
 import requests
+import smbclient
+
 '''
 Grabs HTML comments from dirbusted findings.
 
@@ -79,7 +81,7 @@ def dirbuster(urls, wordlist, logfiles, dir):  # This starts the threads, passin
 
 def bruteSSH(rootDir, host):
     try:
-        os.mkdir("{}/brute".format(rootDir))  # Creates the "HTML" directory
+        os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
     except:
         pass
 
@@ -88,9 +90,14 @@ def bruteSSH(rootDir, host):
     os.system("xterm -geometry 90x30+1920+1080 -e {}".format(command))
 
 
+def smbCheck(host,rootDir):
+    command = "python3 smbCheck.py --host {} --output {}".format(host,rootDir)
+    print(command)
+    os.system("xterm -geometry 90x30+0+540 -hold -e {}".format(command))
+
 def bruteFTP(rootDir, host):
     try:
-        os.mkdir("{}/brute".format(rootDir))  # Creates the "HTML" directory
+        os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
     except:
         pass
     command = "hydra -s 21 -t 20 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -vV ftp://{} -o {}/brute/FTP.txt".format(host,rootDir)
@@ -114,11 +121,11 @@ class nmapScan:
             pass
         self.rootDir = rootDir  # This is where all the files of the scan will be outputed
         self.webServices = ["Microsoft IIS httpd", "Apache httpd", "nginx", "Apache Tomcat", "MiniServ",
-                            "lighttpd"]  # Let's only do common webservices.
+                            "lighttpd","Microsoft HTTPAPI httpd"]  # Let's only do common webservices.
         self.host = host
         self.nmap = nmap3.Nmap()
         if Debug == True:
-            self.result = {'192.168.180.55': {'osmatch': {}, 'ports': [{'protocol': 'tcp', 'portid': '21', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'ftp', 'product': 'FileZilla ftpd', 'version': '0.9.41 beta', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '135', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'msrpc', 'product': 'Microsoft Windows RPC', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '139', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'netbios-ssn', 'product': 'Microsoft Windows netbios-ssn', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '443', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'tunnel': 'ssl', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '445', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'microsoft-ds', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '3306', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'mysql', 'servicefp': 'SF-Port3306-TCP:V=7.91%I=7%D=5/11%Time=609AB58F%P=x86_64-pc-linux-gnu%r(NULL,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(GenericLines,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(RTSPRequest,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(DNSStatusRequestTCP,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(SSLSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TerminalServerCookie,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TLSSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(SMBProgNeg,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(LDAPSearchReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(oracle-tns,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(ms-sql-s,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.180\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server");', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '5040', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'unknown', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '7680', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'tcpwrapped', 'method': 'probed', 'conf': '8'}, 'scripts': []}], 'hostname': [], 'macaddress': None, 'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '127'}}, 'stats': {'scanner': 'nmap', 'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/autorecon/reconscript/apptest/reconscript/reconScript/nmap/nmap_scan.txt 192.168.180.55', 'start': '1620751621', 'startstr': 'Tue May 11 12:47:01 2021', 'version': '7.91', 'xmloutputversion': '1.05'}, 'runtime': {'time': '1620751924', 'timestr': 'Tue May 11 12:52:04 2021', 'summary': 'Nmap done at Tue May 11 12:52:04 2021; 1 IP address (1 host up) scanned in 303.83 seconds', 'elapsed': '303.83', 'exit': 'success'}}
+            self.result = {'192.168.241.55': {'osmatch': {}, 'ports': [{'protocol': 'tcp', 'portid': '21', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'ftp', 'product': 'FileZilla ftpd', 'version': '0.9.41 beta', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '135', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'msrpc', 'product': 'Microsoft Windows RPC', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '139', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'netbios-ssn', 'product': 'Microsoft Windows netbios-ssn', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '443', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'tunnel': 'ssl', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '445', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'microsoft-ds', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '3306', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'mysql', 'servicefp': 'SF-Port3306-TCP:V=7.91%I=7%D=5/12%Time=609C56CD%P=x86_64-pc-linux-gnu%r(NULL,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.241\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(GetRequest,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.241\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(Kerberos,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.241\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server");', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '5040', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'unknown', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '7680', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'pando-pub', 'method': 'table', 'conf': '3'}, 'scripts': []}], 'hostname': [], 'macaddress': None, 'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '127'}}, 'stats': {'scanner': 'nmap', 'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/autorecon/reconscript/apptest/reconscript/reconScript/nmap/nmap_scan.txt 192.168.241.55', 'start': '1620858443', 'startstr': 'Wed May 12 18:27:23 2021', 'version': '7.91', 'xmloutputversion': '1.05'}, 'runtime': {'time': '1620858739', 'timestr': 'Wed May 12 18:32:19 2021', 'summary': 'Nmap done at Wed May 12 18:32:19 2021; 1 IP address (1 host up) scanned in 295.99 seconds', 'elapsed': '295.99', 'exit': 'success'}}
         else:
             print("[!] nmap scan is running...")
             self.result = self.nmap.nmap_version_detection(self.host, args="-p- -oN {}/nmap/nmap_scan.txt".format(
@@ -130,6 +137,12 @@ class nmapScan:
         for ports in self.result[self.host]["ports"]:
             # print(ports)
             self.openPorts.append(ports)
+
+
+    def tsmbCheck(self):
+        print("[!] Starting SMB thread!")
+        x1 = threading.Thread(target=smbCheck, args=(self.host,self.rootDir,))
+        x1.start()
 
     '''
     Runs funct
@@ -157,6 +170,7 @@ class nmapScan:
                     self.tBruteSSH()
                 pass
             elif number == "445":
+                self.tsmbCheck()
                 pass
             else:
                 pass
@@ -309,7 +323,6 @@ if __name__ == "__main__":
     parser.add_argument('--wordlist', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
     args = parser.parse_args()
 
-    dWordlist = "/home/kyand/WORDLISTS/Seclist/SecLists/Discovery/Web-Content/raft-small-words.txt"  # Debug wordlist
     host = args.host
     rootDir = os.path.join(args.output, "reconScript")  # path to create directory
     try:  # Check if it exists (THeres a better way to do it!)
