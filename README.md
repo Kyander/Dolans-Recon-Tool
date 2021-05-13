@@ -8,9 +8,10 @@ This is a python3.8 tool that automates basic reconning.
 4. checks FTP anonymous login and checks if anonymous can upload files.
 5. option to bruteforce FTP with common users/pass list.
 6. option to bruteforce SSH with common users/pass list.
-7. gets all SMB shares
-8. attempts to download all smb shares to folders
-9. outputs everything in a directory.
+7. option to bruteforce SMB with common users/pass list.
+8. gets all SMB shares
+9. attempts to download all smb shares to folders
+10. outputs everything in a directory.
 
 # To Install :
 
