@@ -29,20 +29,41 @@ def main(output,ip):
         output = subprocess.check_output("smbmap -H {}".format(ip), shell=True)
     else:
         pass
-    listing = str(output).split("\\n\\t")[2:]
-    shareList = [x.split()[0] for x in listing]
+    listing = str(output).split("\\n\\t")
+    listing.pop(0)
+    listing.pop(0)
+    shareList = []
+    for x in listing:
+        if x.split(" ")[1] != '':
+            new = x.split(" ")
+            nshare = new[0] + " " + new[1]
+            shareList.append(nshare)
+        else:
+            shareList.append(x.split(" ")[0])
+
+
+    print(shareList)
     return shareList
 
 
 def getFiles(shares,output,ip):
     global authType
     for share in shares:
-        path = "{}/SMB/downloadedFiles/{}".format(output,share)
-        os.mkdir(path)
-        if authType == 0:
-            os.system("cd {} && smbget -a -R smb://dummy:dummy@{}/{}".format(path,ip,share))
+        if " " in share:
+            new = share.split(" ")
+            newShare = new[0] + new[1]
+            path = "{}/SMB/downloadedFiles/{}".format(output, newShare)
         else:
-            os.system("cd {} && smbget -a -R smb://{}/{}".format(path, ip, share))
+            path = "{}/SMB/downloadedFiles/{}".format(output, share)
+        print(path)
+        try:
+            os.mkdir(path)
+        except:
+            pass
+        if authType == 0:
+            os.system("cd {} && smbget -a -R 'smb://dummy:dummy@{}/{}'".format(path,ip,share))
+        else:
+            os.system("cd {} && smbget -a -R 'smb://{}/{}'".format(path, ip, share))
 
 def userOutputSMB(ip,output):
     global authType
@@ -54,6 +75,7 @@ def userOutputSMB(ip,output):
 
 if __name__ == '__main__':
     shareList = main(args.output, args.host)
+    print(shareList)
     userOutputSMB(args.host,args.output)
     getFiles(shareList,args.output,args.host)
     os.system("echo '[!] Done, you can now close this window'")
