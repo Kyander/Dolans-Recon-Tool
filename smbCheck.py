@@ -41,8 +41,6 @@ def main(output,ip):
         else:
             shareList.append(x.split(" ")[0])
 
-
-    print(shareList)
     return shareList
 
 
@@ -55,7 +53,6 @@ def getFiles(shares,output,ip):
             path = "{}/SMB/downloadedFiles/{}".format(output, newShare)
         else:
             path = "{}/SMB/downloadedFiles/{}".format(output, share)
-        print(path)
         try:
             os.mkdir(path)
         except:
@@ -75,7 +72,6 @@ def userOutputSMB(ip,output):
 
 if __name__ == '__main__':
     shareList = main(args.output, args.host)
-    print(shareList)
     userOutputSMB(args.host,args.output)
     getFiles(shareList,args.output,args.host)
     os.system("echo '[!] Done, you can now close this window'")
