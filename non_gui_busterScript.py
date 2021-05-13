@@ -1,10 +1,7 @@
 import os
 import pydirbuster
 import argparse
-from bs4 import BeautifulSoup, Comment
 
-global commentsExists
-commentsExists = False
 
 '''
 Imports to overwrite :
@@ -102,49 +99,13 @@ pydirbuster.Pybuster.Run = Run
 '''
 Overwritting Pydribuster ^^^^
 '''
-def commentGrabber(logfile, host, dir):
-    global commentsExists
-    try:
-        os.mkdir("{}/html".format(dir))  # Creates the "HTML" directory
-    except:
-        pass
-    fileComments = os.path.join("{}/html/".format(dir), "comments.txt")  # the comments.txt path
 
-    with open(logfile) as a:  # Puts every gobusted findings from the file inside a list
-        content = a.readlines()
-
-    content = [x.strip() for x in content]
-    urls = []
-
-    for file in content:  # Creates the urls (appends gobusted findings to url) for requests
-        fileFormat = file.split(' ')[0]
-        urls.append("{}{}".format(host, fileFormat))
-
-    if commentsExists == False:
-        f = open(fileComments, "w+")  # Creates the comments.txt file
-        f.write("ALL THE COMMENTS EXTRACTED :\n\n")
-        f.close()
-        commentsExists = True
-    else:
-        pass
-    for url in urls:  # Grabs all comments and writes it to comments.txt
-        r = requests.get(url, verify=False)
-        content = r.text
-        soup = BeautifulSoup(content, 'html.parser')
-        f = open(fileComments, "a")
-        f.write("{} :\n\n".format(url))
-        f.close()
-        for x in soup.findAll(text=lambda text: isinstance(text, Comment)):
-            f = open(fileComments, "a")
-            f.write(x)
-            f.close()
 
 parser = argparse.ArgumentParser(description="ReconScript")
 parser.add_argument('--url', type=str, metavar='', required=True, help='IP Address of the host')
 parser.add_argument('--output', type=str, metavar='', required=True,
                         help='Output directory for scan (Full Path) (Example : /home/user/)')
 parser.add_argument('--wordlist', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
-parser.add_argument('--rootDir', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
 args = parser.parse_args()
 
 #print(args.url)
@@ -174,10 +135,3 @@ try:
     webbuster.Run()
 except:
     print("failed")
-
-
-
-try:
-    commentGrabber(args.output, args.url, args.rootDir)
-except:
-    print("[!!!] Could not grab comments from {} ! (Probably because the webserver returns 200 on every request.)\n".format(args.url))

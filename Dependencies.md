@@ -5,3 +5,4 @@ Python3.8
 3. xterm
 4. smbmap or crackmapexec
 5. smbget
+6. python-tk

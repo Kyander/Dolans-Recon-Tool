@@ -1,3 +1,7 @@
+import tkinter as tk
+import tkinter.ttk as ttk
+import subprocess
+from tkinter.messagebox import showwarning
 import nmap3
 import pydirbuster
 import argparse
@@ -9,70 +13,260 @@ from bs4 import BeautifulSoup, Comment
 import requests
 import smbclient
 
-'''
-Grabs HTML comments from dirbusted findings.
+global ibuster,inikto
+ibuster = 0
+inikto = 0
 
-'''
-global commentsExists
-commentsExists = False
-
-bruteList = []
-checkerList = []
-dirbustList = []
+global busterList,niktoList
 niktoList = []
-elseList = []
+busterList = []
 
-'''
-this part is cancer to read, its only temporary to organize how xterm pops up.
+global smbCheckCmd
+global bruteSMBcmd
+global bruteFTPcmd
+global bruteSSHcmd
+global rootDir
 
-'''
-
-def cordsManager(func):
-    global bruteList,checkerList,dirbustList,niktoList,elseList
-    dictCords = {"bruteList":bruteList,"checkerList":checkerList,"dirbustList":dirbustList,"niktoList":niktoList,"elseList":elseList}
-    if func == "brute":
-        if len(dictCords["bruteList"]) > 2:
-            return "90x30+1920+1080"
-        elif len(bruteList) == 0:
-            bruteList.append("90x30+1920+1080")
-            return "90x30+1920+1080"
-        else:
-            if "90x30+1920+1080" in dictCords["bruteList"] and "90x30+1370+1080" in dictCords["bruteList"]:
-                dictCords["bruteList"].append("90x30+820+1080")
-                return "90x30+820+1080"
-            elif "90x30+1920+1080" in dictCords["bruteList"]:
-                dictCords["bruteList"].append("90x30+1370+1080")
-                return "90x30+1370+1080"
-    elif func == "checker":
-        return "90x30+0+1080"
-    elif func == "dirbust":
-        if "90x30+1920+0" in dirbustList and "90x30+1370+0" in dirbustList:
-            return "90x30+1920+0"
-        elif "90x30+1920+0" in dirbustList:
-            dirbustList.append("90x30+1370+0")
-            return "90x30+1370+0"
-        elif len(dirbustList) == 0:
-            dirbustList.append("90x30+1920+0")
-            return "90x30+1920+0"
-    elif func == "nikto":
-        if "90x30+0+0" in niktoList and "90x30+550+0" in niktoList:
-            return "90x30+0+0"
-        elif "90x30+0+0" in niktoList:
-            niktoList.append("90x30+550+0")
-            return "90x30+550+0"
-        elif len(niktoList) == 0:
-            niktoList.append("90x30+0+0")
-            print('yes')
-            return "90x30+0+0"
+def btnAlotNikto(frame):
+    global inikto
+    if inikto > 3:
+        inikto = 0
     else:
         pass
+    print(inikto)
+    print(frame["nikto"][inikto])
+    raise_frame(frame["nikto"][inikto])
+    inikto += 1
 
-'''
-this part is cancer to read, its only temporary to organize how xterm pops up. ^^^
 
-'''
+def btnAlotBuster(frame):
+    global ibuster
+    if ibuster > 3:
+        ibuster = 0
+    else:
+        pass
+    print(ibuster)
+    print(frame["buster"][ibuster])
+    raise_frame(frame["buster"][ibuster])
+    ibuster += 1
+
+def raise_frame(frame):
+    frame.tkraise()
+
+class NewprojectApp:
+    def __init__(self,listing, master=None):
+        # build ui
+        self.mainFrame = ttk.Frame(master)
+        self.BtnFrame = ttk.Frame(self.mainFrame)
+        self.bnikto = ttk.Button(self.BtnFrame)
+        self.bnikto.configure(text='Nikto')
+        self.bnikto.pack(side='top')
+        self.bnikto.configure(command=lambda:btnAlotNikto(self.frameDict))
+        self.bsshBrute = ttk.Button(self.BtnFrame)
+        self.bsshBrute.configure(text='SSH Brute')
+        self.bsshBrute.configure(command=lambda:raise_frame(self.fsshBrute))
+        self.bsshBrute.pack(side='top')
+        self.bftpBrute = ttk.Button(self.BtnFrame)
+        self.bftpBrute.configure(text='FTP Brute')
+        self.bftpBrute.configure(command=lambda:raise_frame(self.fFtpBrute))
+        self.bftpBrute.pack(side='top')
+        self.bsmbBrute = ttk.Button(self.BtnFrame)
+        self.bsmbBrute.configure(text='SMB Brute')
+        self.bsmbBrute.configure(command=lambda:raise_frame(self.fsmbBrute))
+        self.bsmbBrute.pack(side='top')
+        self.bdirbuster = ttk.Button(self.BtnFrame)
+        self.bdirbuster.configure(text='Dirbuster')
+        self.bdirbuster.configure(command=lambda:btnAlotBuster(self.frameDict))
+        self.bdirbuster.pack(side='top')
+        self.bsmbCheck = ttk.Button(self.BtnFrame)
+        self.bsmbCheck.configure(text='SMBCheck')
+        self.bsmbCheck.configure(command=lambda:raise_frame(self.fSmbChecker))
+        self.bsmbCheck.pack(side='top')
+        self.bNmapView = ttk.Button(self.BtnFrame)
+        self.bNmapView.configure(text='View NMAP')
+        self.bNmapView.configure(command=lambda:raise_frame(self.fNmap))
+        self.bNmapView.pack(side='top')
+        self.BtnFrame.configure(height='200', width='200')
+        self.BtnFrame.grid(column='0', row='1')
+        self.fSmbChecker = ttk.Frame(self.mainFrame)
+        self.fSmbChecker.configure(height='600', width='600')
+        self.fSmbChecker.grid(column='1', row='1')
+        self.fNikto1 = ttk.Frame(self.mainFrame)
+        self.fNikto1.configure(height='600', width='600')
+        self.fNikto1.grid(column='1', row='1')
+        self.fNikto2 = ttk.Frame(self.mainFrame)
+        self.fNikto2.configure(height='600', width='600')
+        self.fNikto2.grid(column='1', row='1')
+        self.fNikto3 = ttk.Frame(self.mainFrame)
+        self.fNikto3.configure(height='600', width='600')
+        self.fNikto3.grid(column='1', row='1')
+        self.fNikto4 = ttk.Frame(self.mainFrame)
+        self.fNikto4.configure(height='600', width='600')
+        self.fNikto4.grid(column='1', row='1')
+        self.fbuster1= ttk.Frame(self.mainFrame)
+        self.fbuster1.configure(height='600', width='600')
+        self.fbuster1.grid(column='1', row='1')
+        self.fbuster2 = ttk.Frame(self.mainFrame)
+        self.fbuster2.configure(height='600', width='600')
+        self.fbuster2.grid(column='1', row='1')
+        self.fbuster3 = ttk.Frame(self.mainFrame)
+        self.fbuster3.configure(height='600', width='600')
+        self.fbuster3.grid(column='1', row='1')
+        self.fbuster4 = ttk.Frame(self.mainFrame)
+        self.fbuster4.configure(height='600', width='600')
+        self.fbuster4.grid(column='1', row='1')
+        self.fsshBrute = ttk.Frame(self.mainFrame)
+        self.fsshBrute.configure(height='600', width='600')
+        self.fsshBrute.grid(column='1', row='1')
+        self.fFtpBrute = ttk.Frame(self.mainFrame)
+        self.fFtpBrute.configure(height='600', width='600')
+        self.fFtpBrute.grid(column='1', row='1')
+        self.fsmbBrute = ttk.Frame(self.mainFrame)
+        self.fsmbBrute.configure(height='600', width='600')
+        self.fsmbBrute.grid(column='1', row='1')
+        self.mainFrame.configure(height='200', width='200')
+        self.mainFrame.pack(side='top')
+        self.fNmap = ttk.Frame(self.mainFrame)
+        self.fNmap.configure(height='600', width='600')
+        self.fNmap.grid(column='1', row='1')
+        self.niktoFrames = [self.fNikto1,self.fNikto2,self.fNikto3,self.fNikto4]
+        self.busterFrames = [self.fbuster1,self.fbuster2,self.fbuster3,self.fbuster4]
+        self.frameDict = {"nikto":self.niktoFrames,"buster":self.busterFrames}
+        self.idListBuster = [self.fbuster1.winfo_id(),self.fbuster2.winfo_id(),self.fbuster3.winfo_id(),self.fbuster4.winfo_id()]
+        self.idListNikto = [self.fNikto1.winfo_id(),self.fNikto2.winfo_id(),self.fNikto3.winfo_id(),self.fNikto4.winfo_id()]
+        self.idSmbCheck = self.fSmbChecker.winfo_id()
+        self.idSmbBrute = self.fsmbBrute.winfo_id()
+        self.idFtpBrute = self.fFtpBrute.winfo_id()
+        self.idSshBrute = self.fsshBrute.winfo_id()
+        self.idNamp = self.fNmap.winfo_id()
+        # Main widget
+        self.mainwindow = self.mainFrame
+
+        '''
+        DIRBUSTER 
+        '''
+
+        try:
+            i = 0
+            for cmd in busterList:
+                p = subprocess.Popen(
+                    ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100","-hold","-e","{}".format(cmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                i += 1
+            if i < 4:
+                newI = 4 - i
+                for notAv in range(0,newI):
+                    if i == 5:
+                        break
+                    else:
+                        pass
+                    p = subprocess.Popen(
+                        ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100", "-hold", "-e",
+                         "echo '[!] Nothing here!'"],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    i +=1
+            '''
+            DIRBUSTER ^^^^^
+            '''
+
+            '''
+            NIKTO 
+            '''
+
+            try:
+                i = 0
+                for cmd in niktoList:
+                    p = subprocess.Popen(
+                        ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
+                         "{}".format(cmd)],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    i += 1
+                if i < 4:
+                    newI = 4 - i
+                    for notAv in range(0, newI):
+                        if i == 5:
+                            break
+                        else:
+                            pass
+                        p = subprocess.Popen(
+                            ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
+                             "echo '[!] Nothing here!'"],
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                        i += 1
+            except:
+                pass
+
+
+            '''
+            NIKTO ^^^^
+            '''
+
+            '''
+            SMBCHECK
+            '''
+            global smbCheckCmd
+            try:
+                p2 = subprocess.Popen(
+                    ["xterm", "-into", str(self.idSmbCheck), "-geometry", "100x100", "-hold", "-e", "{}".format(smbCheckCmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            except:
+                self.bsmbCheck.pack_forget()
+
+            global bruteSMBcmd
+            try:
+                p2 = subprocess.Popen(
+                    ["xterm", "-into", str(self.idSmbBrute), "-geometry", "100x100", "-hold", "-e", "{}".format(bruteSMBcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            except:
+                self.bsmbBrute.pack_forget()
+
+            global bruteFTPcmd
+            try:
+                p2 = subprocess.Popen(
+                    ["xterm", "-into", str(self.idFtpBrute), "-geometry", "100x100", "-hold", "-e",
+                     "{}".format(bruteFTPcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            except:
+                self.bftpBrute.pack_forget()
+            global bruteSSHcmd
+            try:
+                p2 = subprocess.Popen(
+                    ["xterm", "-into", str(self.idSshBrute), "-geometry", "100x100", "-hold", "-e",
+                     "{}".format(bruteSSHcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            except:
+                self.bsshBrute.pack_forget()
+            global rootDir
+            try:
+                p2 = subprocess.Popen(
+                    ["xterm", "-into", str(self.idNamp), "-geometry", "100x100", "-hold", "-e", "cat {}/nmap/nmap_scan.txt".format(rootDir)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            except:
+                pass
+            '''
+            p2 = subprocess.Popen(
+                ["xterm", "-into", str(self.idList[1]), "-geometry", "100x100","-hold", "-e", "ping -c 4 localhost"],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p3 = subprocess.Popen(
+                ["xterm", "-into", str(self.idList[2]), "-geometry", "100x100"],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            p4 = subprocess.Popen(
+                ["xterm", "-into", str(self.idList[3]), "-geometry", "100x100", "-e", "ping localhost"],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+            '''
+        except FileNotFoundError:
+            showwarning("Error", "xterm is not installed")
+            raise SystemExit
+
+    def lol(self):
+        pass
+
+    def run(self):
+        self.mainwindow.mainloop()
+
 
 def doNikto(logfile, url):
+    global niktoList
     newlogfile = logfile.replace('dirbust','nikto')
     rootfile = logfile.split("dirbust")[0]
     print(rootfile)
@@ -81,9 +275,10 @@ def doNikto(logfile, url):
         os.mkdir("{}/nikto".format(rootfile))
     except:
         pass
-    cords =cordsManager("nikto")
+    #cords =cordsManager("nikto")
     command = "nikto -host={} -o {}".format(url,newlogfile)
-    os.system("xterm -T 'Nikto!' -geometry {} -e {}".format(cords,command))
+    niktoList.append(command)
+    #os.system("xterm -T 'Nikto!' -geometry {} -e {}".format(cords,command))
 
 def commentGrabber(logfile, host, dir):
     global commentsExists
@@ -124,19 +319,17 @@ def commentGrabber(logfile, host, dir):
 
 
 def bust(url, wordlist, logfile, dir):  # THIS IS THE THREADED FUNCTION
+    global busterList
     # print(Debug)
-    command = "python3 ./non_gui_busterScript.py --url {} --wordlist {} --output {}".format(url, wordlist, logfile)
+    command = "python3 ./busterScript.py --url {} --wordlist {} --output {} --rootDir {}".format(url, wordlist, logfile,dir)
+    busterList.append(command)
     if Debug == True:
         print("DEBUG INFO ------- DIRBUST -------\n")
         print("URL : {}\nWORDLIST : {}\nLOGFILE : {}\nCOMMAND : {}".format(url, wordlist, logfile, command))
     else:
         pass
-    cords = cordsManager("dirbust")
-    os.system("xterm -T 'dirbuster!' -geometry {} -e {}".format(cords,command))
-    try:
-        commentGrabber(logfile, url, dir)
-    except:
-        print("[!!!] Could not grab comments from {} ! (Probably because the webserver returns 200 on every request.)\n".format(url))
+    #cords = cordsManager("dirbust")
+    #os.system("xterm -T 'dirbuster!' -geometry {} -e {}".format(cords,command))
 
 
 def dirbuster(urls, wordlist, logfiles, dir):  # This starts the threads, passing it all it needs.
@@ -147,7 +340,7 @@ def dirbuster(urls, wordlist, logfiles, dir):  # This starts the threads, passin
         tdirbust.start()
         tnikto.start()
         i += 1
-
+'''
 def bruteSSH(rootDir, host):
     try:
         os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
@@ -165,13 +358,15 @@ def bruteSMB(rootDir, host):
         pass
     cords = cordsManager("brute")
     command = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(host,rootDir)
-    os.system("xterm -T 'bruteforcing SMB!' -geometry {} -hold -e {}".format(cords,command))
+    os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords,command))
 
-
+'''
 def smbCheck(host,rootDir):
+    global smbCheckCmd
     command = "python3 smbCheck.py --host {} --output {}".format(host,rootDir)
-    os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+1080 -hold -e {}".format(command))
-
+    smbCheckCmd = command
+    #os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+1080 -hold -e {}".format(command))
+'''
 def bruteFTP(rootDir, host):
     try:
         os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
@@ -179,6 +374,8 @@ def bruteFTP(rootDir, host):
         pass
     command = "hydra -s 21 -t 20 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -vV ftp://{} -o {}/brute/FTP.txt -I ".format(host,rootDir)
     os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
+
+'''
 
 class nmapScan:
     '''
@@ -216,12 +413,19 @@ class nmapScan:
             self.openPorts.append(ports)
 
     def tbruteSMB(self):
-        x1 = threading.Thread(target=bruteSMB, args=(self.rootDir,self.host,))
-        x1.start()
+        global bruteSMBcmd
+        try:
+            os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
+        except:
+            pass
+        bruteSMBcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(
+            host, rootDir)
+
+        #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
     def tsmbCheck(self):
-        x1 = threading.Thread(target=smbCheck, args=(self.host,self.rootDir,))
-        x1.start()
+        global smbCheckCmd
+        smbCheckCmd = "python3 smbCheck.py --host {} --output {}".format(self.host, self.rootDir)
 
     '''
     Runs funct
@@ -252,6 +456,7 @@ class nmapScan:
                     else:
                         pass
                 pass
+            
             elif number == "445":
                 if allBrute == 1:
                     self.tbruteSMB()
@@ -281,14 +486,25 @@ class nmapScan:
     def listOpenPorts(self):
         return self.openPorts
 
-
     def tBruteSSH(self):
-        x= threading.Thread(target=bruteSSH, args=(self.rootDir,self.host,))
-        x.start()
+        global bruteSSHcmd
+        try:
+            os.mkdir("{}/brute".format(self.rootDir))  # Creates the "brute" directory
+        except:
+            pass
+        bruteSSHcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(
+            self.host, self.rootDir)
+        #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
     def tBruteFTP(self):
-        x = threading.Thread(target=bruteFTP, args=(self.rootDir,self.host,))
-        x.start()
+        global bruteFTPcmd
+        try:
+            os.mkdir("{}/brute".format(self.rootDir))  # Creates the "brute" directory
+        except:
+            pass
+        bruteFTPcmd = "hydra -s 21 -t 20 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -vV ftp://{} -o {}/brute/FTP.txt -I ".format(
+            self.host, self.rootDir)
+        #os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
     '''
     Do regular FTP checks (check anon login, check perms)
 
@@ -328,7 +544,7 @@ class nmapScan:
                 f = open("{}/results.txt".format(rootDir), "a")
                 f.write("File upload : [FAILED]\n")
                 f.close()
-
+    
 
 
         except:
@@ -405,7 +621,7 @@ class nmapScan:
         dirbuster(self.urls, wordfile, logFiles, self.rootDir)  # Starts the threads
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     global allBrute
     '''
     Argparse stuff (Comment out when debugging)
@@ -413,11 +629,12 @@ if __name__ == "__main__":
     '''
 
     parser = argparse.ArgumentParser(description="ReconScript")
-    parser.add_argument('-I','--host', type=str, metavar='', required=True, help='IP Address of the host')
-    parser.add_argument('-o','--output', type=str, metavar='', required=True,
+    parser.add_argument('-I', '--host', type=str, metavar='', required=True, help='IP Address of the host')
+    parser.add_argument('-o', '--output', type=str, metavar='', required=True,
                         help='Output directory for scan (Full Path) (Example : /home/user/)')
-    parser.add_argument('-w','--wordlist', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
-    parser.add_argument('-a','--all',action="store_true", required=False, help='--all if you want to bruteforce all (Does not prompt)')
+    parser.add_argument('-w', '--wordlist', type=str, metavar='', required=True, help='Wordlist to use for dirbust')
+    parser.add_argument('-a', '--all', action="store_true", required=False,
+                        help='--all if you want to bruteforce all (Does not prompt)')
     args = parser.parse_args()
     if args.all:
         allBrute = 1
@@ -433,7 +650,12 @@ if __name__ == "__main__":
         print("[!] {} Already exists, will output everything there.\n".format(rootDir))
         pass
     wordlist = args.wordlist
-    result = nmapScan(host, rootDir, Debug=True).check(wordlist)  # Regular portScan
+    result = nmapScan(host, rootDir, Debug=False).check(wordlist)  # Regular portScan
 
 
+
+    import tkinter as tk
+    root = tk.Tk()
+    app = NewprojectApp(root)
+    app.run()
 
