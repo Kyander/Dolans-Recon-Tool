@@ -16,6 +16,74 @@ Grabs HTML comments from dirbusted findings.
 global commentsExists
 commentsExists = False
 
+bruteList = []
+checkerList = []
+dirbustList = []
+niktoList = []
+elseList = []
+
+'''
+this part is cancer to read, its only temporary to organize how xterm pops up.
+
+'''
+
+def cordsManager(func):
+    global bruteList,checkerList,dirbustList,niktoList,elseList
+    dictCords = {"bruteList":bruteList,"checkerList":checkerList,"dirbustList":dirbustList,"niktoList":niktoList,"elseList":elseList}
+    if func == "brute":
+        if len(dictCords["bruteList"]) > 2:
+            return "90x30+1920+1080"
+        elif len(bruteList) == 0:
+            bruteList.append("90x30+1920+1080")
+            return "90x30+1920+1080"
+        else:
+            if "90x30+1920+1080" in dictCords["bruteList"] and "90x30+1370+1080" in dictCords["bruteList"]:
+                dictCords["bruteList"].append("90x30+820+1080")
+                return "90x30+820+1080"
+            elif "90x30+1920+1080" in dictCords["bruteList"]:
+                dictCords["bruteList"].append("90x30+1370+1080")
+                return "90x30+1370+1080"
+    elif func == "checker":
+        return "90x30+0+1080"
+    elif func == "dirbust":
+        if "90x30+1920+0" in dirbustList and "90x30+1370+0" in dirbustList:
+            return "90x30+1920+0"
+        elif "90x30+1920+0" in dirbustList:
+            dirbustList.append("90x30+1370+0")
+            return "90x30+1370+0"
+        elif len(dirbustList) == 0:
+            dirbustList.append("90x30+1920+0")
+            return "90x30+1920+0"
+    elif func == "nikto":
+        if "90x30+0+0" in niktoList and "90x30+550+0" in niktoList:
+            return "90x30+0+0"
+        elif "90x30+0+0" in niktoList:
+            niktoList.append("90x30+550+0")
+            return "90x30+550+0"
+        elif len(niktoList) == 0:
+            niktoList.append("90x30+0+0")
+            print('yes')
+            return "90x30+0+0"
+    else:
+        pass
+
+'''
+this part is cancer to read, its only temporary to organize how xterm pops up. ^^^
+
+'''
+
+def doNikto(logfile, url):
+    newlogfile = logfile.replace('dirbust','nikto')
+    rootfile = logfile.split("dirbust")[0]
+    print(rootfile)
+    print(newlogfile)
+    try:
+        os.mkdir("{}/nikto".format(rootfile))
+    except:
+        pass
+    cords =cordsManager("nikto")
+    command = "nikto -host={} -o {}".format(url,newlogfile)
+    os.system("xterm -T 'Nikto!' -geometry {} -e {}".format(cords,command))
 
 def commentGrabber(logfile, host, dir):
     global commentsExists
@@ -63,8 +131,8 @@ def bust(url, wordlist, logfile, dir):  # THIS IS THE THREADED FUNCTION
         print("URL : {}\nWORDLIST : {}\nLOGFILE : {}\nCOMMAND : {}".format(url, wordlist, logfile, command))
     else:
         pass
-
-    os.system("xterm -T 'dirbuster!' -geometry 90x30+1920+0 -e {}".format(command))
+    cords = cordsManager("dirbust")
+    os.system("xterm -T 'dirbuster!' -geometry {} -e {}".format(cords,command))
     try:
         commentGrabber(logfile, url, dir)
     except:
@@ -74,8 +142,10 @@ def bust(url, wordlist, logfile, dir):  # THIS IS THE THREADED FUNCTION
 def dirbuster(urls, wordlist, logfiles, dir):  # This starts the threads, passing it all it needs.
     i = 0
     for url in urls:
-        threader = threading.Thread(target=bust, args=(url, wordlist, logfiles[i], dir))
-        threader.start()
+        tnikto = threading.Thread(target=doNikto, args=(logfiles[i], url,))  # FOR NIKTO!
+        tdirbust = threading.Thread(target=bust, args=(url, wordlist, logfiles[i], dir)) # FOR DIRBUST!
+        tdirbust.start()
+        tnikto.start()
         i += 1
 
 def bruteSSH(rootDir, host):
@@ -83,23 +153,24 @@ def bruteSSH(rootDir, host):
         os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
     except:
         pass
-
+    cords = cordsManager("brute")
     command = "hydra -s 22 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V ssh://{} -o {}/brute/SSH.txt -I ".format(
         host, rootDir)
-    os.system("xterm -T 'bruteforcing SSH!' -geometry 90x30+1920+1080 -e {}".format(command))
+    os.system("xterm -T 'bruteforcing SSH!' -geometry {} -e {}".format(cords,command))
 
 def bruteSMB(rootDir, host):
     try:
         os.mkdir("{}/brute".format(rootDir))  # Creates the "brute" directory
     except:
         pass
+    cords = cordsManager("brute")
     command = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(host,rootDir)
-    os.system("xterm -T 'bruteforcing SMB!' -geometry 90x30+1920+1080 -hold -e {}".format(command))
+    os.system("xterm -T 'bruteforcing SMB!' -geometry {} -hold -e {}".format(cords,command))
 
 
 def smbCheck(host,rootDir):
     command = "python3 smbCheck.py --host {} --output {}".format(host,rootDir)
-    os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+540 -hold -e {}".format(command))
+    os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+1080 -hold -e {}".format(command))
 
 def bruteFTP(rootDir, host):
     try:
@@ -175,7 +246,7 @@ class nmapScan:
                 if allBrute == 1:
                     self.tBruteSSH()
                 else:
-                    answ = input("\n[!] Do you wish to bruteforce SSH? (y/n) ")
+                    answ = input("[!] Do you wish to bruteforce SSH? (y/n)\n")
                     if answ == "y":
                         self.tBruteSSH()
                     else:
@@ -185,7 +256,7 @@ class nmapScan:
                 if allBrute == 1:
                     self.tbruteSMB()
                 else:
-                    answ = input("\n[!] Do you wish to bruteforce SMB? (y/n) ")
+                    answ = input("[!] Do you wish to bruteforce SMB? (y/n)\n")
                     if answ == "y":
                         self.tbruteSMB()
                     else:
@@ -239,7 +310,7 @@ class nmapScan:
             if allBrute == 1:
                 self.tBruteFTP()
             else:
-                answ = input("\n[!] FTP anonymous works, do you still want to bruteforce it? (y/n) ")
+                answ = input("[!] FTP anonymous works, do you still want to bruteforce it? (y/n)\n")
                 if answ == "y":
                     self.tBruteFTP()
                 else:
@@ -300,7 +371,7 @@ class nmapScan:
                 port = "SSL"
             else:
                 port = url.split(":")[2]
-            name = "{}_dirbust.txt".format(port)
+            name = "{}.txt".format(port)
             self.logFiles.append("{}/dirbust/{}".format(dir, name))
         return self.logFiles  # Return list
 
@@ -362,7 +433,7 @@ if __name__ == "__main__":
         print("[!] {} Already exists, will output everything there.\n".format(rootDir))
         pass
     wordlist = args.wordlist
-    result = nmapScan(host, rootDir, Debug=False).check(wordlist)  # Regular portScan
+    result = nmapScan(host, rootDir, Debug=True).check(wordlist)  # Regular portScan
 
 
 
