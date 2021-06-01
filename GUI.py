@@ -3,15 +3,15 @@ import tkinter.ttk as ttk
 import subprocess
 from tkinter.messagebox import showwarning
 import nmap3
-import pydirbuster
 import argparse
 import os
-import sys
 import threading
 from ftplib import FTP
 from bs4 import BeautifulSoup, Comment
 import requests
-import smbclient
+from tkinter import *
+from tkinter import messagebox
+from tkinter.ttk import *
 
 global ibuster,inikto
 ibuster = 0
@@ -33,8 +33,8 @@ def btnAlotNikto(frame):
         inikto = 0
     else:
         pass
-    print(inikto)
-    print(frame["nikto"][inikto])
+    #print(inikto)
+    #print(frame["nikto"][inikto])
     raise_frame(frame["nikto"][inikto])
     inikto += 1
 
@@ -45,8 +45,8 @@ def btnAlotBuster(frame):
         ibuster = 0
     else:
         pass
-    print(ibuster)
-    print(frame["buster"][ibuster])
+    #print(ibuster)
+    #print(frame["buster"][ibuster])
     raise_frame(frame["buster"][ibuster])
     ibuster += 1
 
@@ -55,9 +55,25 @@ def raise_frame(frame):
 
 class NewprojectApp:
     def __init__(self,listing, master=None):
+        global rootDir
+        global spList
         # build ui
         self.mainFrame = ttk.Frame(master)
         self.BtnFrame = ttk.Frame(self.mainFrame)
+        style = ttk.Style()
+        style.configure("Mine.TButton", background="red")
+        self.bactions = ttk.Button(self.BtnFrame, style="Mine.TButton")
+        self.bactions.configure(text='Actions')
+        self.bactions.pack(pady='50', side='bottom')
+        self.bactions.configure(command=self.actionWindow)
+        self.bsprayShow = ttk.Button(self.BtnFrame)
+        self.bsprayShow.configure(text='Spraying')
+        self.bsprayShow.pack(side='top')
+        self.bsprayShow.configure(command=lambda: raise_frame(self.fsprayShow))
+        self.bcredsWrite = ttk.Button(self.BtnFrame)
+        self.bcredsWrite.configure(text='Write Creds')
+        self.bcredsWrite.pack(side='top')
+        self.bcredsWrite.configure(command=lambda:raise_frame(self.fcredsWrite))
         self.bnikto = ttk.Button(self.BtnFrame)
         self.bnikto.configure(text='Nikto')
         self.bnikto.pack(side='top')
@@ -88,9 +104,15 @@ class NewprojectApp:
         self.bNmapView.pack(side='top')
         self.BtnFrame.configure(height='200', width='200')
         self.BtnFrame.grid(column='0', row='1')
+        self.fcredsWrite = ttk.Frame(self.mainFrame)
+        self.fcredsWrite.configure(height='600', width='600')
+        self.fcredsWrite.grid(column='1', row='1')
         self.fSmbChecker = ttk.Frame(self.mainFrame)
         self.fSmbChecker.configure(height='600', width='600')
         self.fSmbChecker.grid(column='1', row='1')
+        self.fsprayShow = ttk.Frame(self.mainFrame)
+        self.fsprayShow.configure(height='600', width='600')
+        self.fsprayShow.grid(column='1', row='1')
         self.fNikto1 = ttk.Frame(self.mainFrame)
         self.fNikto1.configure(height='600', width='600')
         self.fNikto1.grid(column='1', row='1')
@@ -134,6 +156,8 @@ class NewprojectApp:
         self.frameDict = {"nikto":self.niktoFrames,"buster":self.busterFrames}
         self.idListBuster = [self.fbuster1.winfo_id(),self.fbuster2.winfo_id(),self.fbuster3.winfo_id(),self.fbuster4.winfo_id()]
         self.idListNikto = [self.fNikto1.winfo_id(),self.fNikto2.winfo_id(),self.fNikto3.winfo_id(),self.fNikto4.winfo_id()]
+        self.idCredsWrite = self.fcredsWrite.winfo_id()
+        self.idSprayShow = self.fsprayShow.winfo_id()
         self.idSmbCheck = self.fSmbChecker.winfo_id()
         self.idSmbBrute = self.fsmbBrute.winfo_id()
         self.idFtpBrute = self.fFtpBrute.winfo_id()
@@ -141,6 +165,22 @@ class NewprojectApp:
         self.idNamp = self.fNmap.winfo_id()
         # Main widget
         self.mainwindow = self.mainFrame
+        self.bsprayShow.pack_forget()
+        spList = [] # subprocess list so we can end each of them on exit.
+
+
+        '''
+        Creds Write
+        '''
+        try:
+            spList.append( subprocess.Popen(
+                ["xterm", "-into", str(self.idCredsWrite), "-geometry", "100x100", "-hold", "-e",
+                 "nano {}/credsWrite.txt".format(rootDir)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
+        except:
+            self.bsmbCheck.pack_forget()
+
+
 
         '''
         DIRBUSTER 
@@ -149,9 +189,10 @@ class NewprojectApp:
         try:
             i = 0
             for cmd in busterList:
-                p = subprocess.Popen(
-                    ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100","-hold","-e","{}".format(cmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                spList.append(subprocess.Popen(
+                    ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100","-hold","-e","{} & wait".format(cmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+                #print(cmd)
                 i += 1
             if i < 4:
                 newI = 4 - i
@@ -160,10 +201,10 @@ class NewprojectApp:
                         break
                     else:
                         pass
-                    p = subprocess.Popen(
+                    spList.append(subprocess.Popen(
                         ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100", "-hold", "-e",
                          "echo '[!] Nothing here!'"],
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE))
                     i +=1
             '''
             DIRBUSTER ^^^^^
@@ -176,10 +217,10 @@ class NewprojectApp:
             try:
                 i = 0
                 for cmd in niktoList:
-                    p = subprocess.Popen(
+                    spList.append(subprocess.Popen(
                         ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
-                         "{}".format(cmd)],
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                         "{} & wait".format(cmd)],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE))
                     i += 1
                 if i < 4:
                     newI = 4 - i
@@ -188,10 +229,10 @@ class NewprojectApp:
                             break
                         else:
                             pass
-                        p = subprocess.Popen(
+                        spList.append(subprocess.Popen(
                             ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
                              "echo '[!] Nothing here!'"],
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE))
                         i += 1
             except:
                 pass
@@ -206,43 +247,62 @@ class NewprojectApp:
             '''
             global smbCheckCmd
             try:
-                p2 = subprocess.Popen(
-                    ["xterm", "-into", str(self.idSmbCheck), "-geometry", "100x100", "-hold", "-e", "{}".format(smbCheckCmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                spList.append(subprocess.Popen(
+                    ["xterm", "-into", str(self.idSmbCheck), "-geometry", "100x100", "-hold", "-e", "{} & wait".format(smbCheckCmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
             except:
                 self.bsmbCheck.pack_forget()
 
+            '''
+            SMB BRUTE
+            '''
+
             global bruteSMBcmd
             try:
-                p2 = subprocess.Popen(
-                    ["xterm", "-into", str(self.idSmbBrute), "-geometry", "100x100", "-hold", "-e", "{}".format(bruteSMBcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            except:
+                spList.append(subprocess.Popen(
+                    ["xterm", "-into", str(self.idSmbBrute), "-geometry", "100x100", "-hold", "-e", "{} & wait".format(bruteSMBcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+            except Exception as e:
+                #print(e)
                 self.bsmbBrute.pack_forget()
+
+            '''
+            FTP BRUTE
+            '''
 
             global bruteFTPcmd
             try:
-                p2 = subprocess.Popen(
+                 spList.append(subprocess.Popen(
                     ["xterm", "-into", str(self.idFtpBrute), "-geometry", "100x100", "-hold", "-e",
-                     "{}".format(bruteFTPcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            except:
+                     "{} & wait".format(bruteFTPcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+            except Exception as e:
+                #print(e)
                 self.bftpBrute.pack_forget()
+
+            '''
+            SSH BRUTE
+            '''
+
             global bruteSSHcmd
             try:
-                p2 = subprocess.Popen(
+                spList.append(subprocess.Popen(
                     ["xterm", "-into", str(self.idSshBrute), "-geometry", "100x100", "-hold", "-e",
-                     "{}".format(bruteSSHcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                     "{} & wait".format(bruteSSHcmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
             except:
                 self.bsshBrute.pack_forget()
-            global rootDir
+
+            '''
+            NMAP BRUTE
+            '''
             try:
-                p2 = subprocess.Popen(
+                 spList.append(subprocess.Popen(
                     ["xterm", "-into", str(self.idNamp), "-geometry", "100x100", "-hold", "-e", "cat {}/nmap/nmap_scan.txt".format(rootDir)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE)
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
             except:
                 pass
+            self.spList = spList # subprocess list so we can end each of them on exit.
             '''
             p2 = subprocess.Popen(
                 ["xterm", "-into", str(self.idList[1]), "-geometry", "100x100","-hold", "-e", "ping -c 4 localhost"],
@@ -258,6 +318,57 @@ class NewprojectApp:
             showwarning("Error", "xterm is not installed")
             raise SystemExit
 
+    def sprayingShow(self):
+        self.bsprayShow.pack()
+        #print("Running sprayingShow")
+        global sprayingCmd
+        self.sprayingCmd = sprayingCmd
+        #print(self.sprayingCmd)
+        try:
+            spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.idSprayShow), "-geometry", "100x100", "-hold", "-e",
+                 "{} & wait".format(self.sprayingCmd)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except:
+            self.bsshBrute.pack_forget()
+        self.mainwindow.lift()
+
+    def onExit(self):
+        for service in self.spList:
+            service.terminate()
+
+    def actionWindow(self):
+        global actionWindow
+        # Toplevel object which will
+        # be treated as a new window
+        try:
+            if actionWindow.state() == "normal": actionWindow.lift()
+        except:
+
+            actionWindow = Toplevel(self.mainwindow)
+
+            actionWindow.frame2 = ttk.Frame(actionWindow)
+            actionWindow.atctions = ttk.Label(actionWindow.frame2)
+            actionWindow.atctions.configure(text='Action Launcher')
+            actionWindow.atctions.pack(side='top')
+            actionWindow.separatorLine = ttk.Separator(actionWindow.frame2)
+            actionWindow.separatorLine.configure(orient='horizontal')
+            actionWindow.separatorLine.pack(fill='x', side='top')
+            actionWindow.frame2.configure(height='22', width='500')
+            actionWindow.frame2.pack(side='top')
+            actionWindow.frame2.pack_propagate(0)
+            actionWindow.frame4 = ttk.Frame(actionWindow)
+            actionWindow.bspray = ttk.Button(actionWindow.frame4)
+            actionWindow.bspray.configure(text='Sprayer')
+            actionWindow.bspray.configure(command=self.sprayingShow)
+            actionWindow.bspray.pack(pady='50', side='top')
+            actionWindow.button4 = ttk.Button(actionWindow.frame4)
+            actionWindow.button4.configure(state='disabled', text='Launch owasp zap')
+            actionWindow.button4.pack(side='top')
+            actionWindow.frame4.configure(height='200', width='500')
+            actionWindow.frame4.pack(side='bottom')
+            actionWindow.frame4.pack_propagate(0)
+
     def lol(self):
         pass
 
@@ -265,12 +376,19 @@ class NewprojectApp:
         self.mainwindow.mainloop()
 
 
+def on_exit(root):
+    global spList
+    for service in spList:
+        service.terminate()
+    if messagebox.askokcancel("Quit", "Are you sure you want to quit? Stuff might break"):
+        root.destroy()
+
 def doNikto(logfile, url):
     global niktoList
     newlogfile = logfile.replace('dirbust','nikto')
     rootfile = logfile.split("dirbust")[0]
-    print(rootfile)
-    print(newlogfile)
+    #print(rootfile)
+    #print(newlogfile)
     try:
         os.mkdir("{}/nikto".format(rootfile))
     except:
@@ -411,6 +529,24 @@ class nmapScan:
         self.openPorts = []
         for ports in self.result[self.host]["ports"]:
             self.openPorts.append(ports)
+        self.createCommandSpraying()
+
+    def createCommandSpraying(self):
+        global sprayingCmd
+        services = []
+        for port in self.openPorts:
+            try:  # If dictionary does not have "product" key, skip. (Theres probably a better way to do this)
+                services.append(port['service']['name'])
+            except:
+                pass
+        stringServices = ""
+        for service in services:
+            stringServices+="{},".format(service)
+        #print(stringServices)
+
+        #print(services)
+        sprayingCmd = "python3 sprayer.py {}/credsWrite.txt {} {} {}".format(rootDir,self.host,stringServices,rootDir)
+        #print(sprayingCmd)
 
     def tbruteSMB(self):
         global bruteSMBcmd
@@ -420,7 +556,7 @@ class nmapScan:
             pass
         bruteSMBcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(
             host, rootDir)
-
+        #print(bruteSMBcmd)
         #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
     def tsmbCheck(self):
@@ -492,7 +628,7 @@ class nmapScan:
             os.mkdir("{}/brute".format(self.rootDir))  # Creates the "brute" directory
         except:
             pass
-        bruteSSHcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(
+        bruteSSHcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} ssh -o {}/brute/SSH.txt -I".format(
             self.host, self.rootDir)
         #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
@@ -504,6 +640,7 @@ class nmapScan:
             pass
         bruteFTPcmd = "hydra -s 21 -t 20 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -vV ftp://{} -o {}/brute/FTP.txt -I ".format(
             self.host, self.rootDir)
+        #print(bruteFTPcmd)
         #os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
     '''
     Do regular FTP checks (check anon login, check perms)
@@ -512,6 +649,7 @@ class nmapScan:
 
     def checkFTP(self):
         global allBrute
+        #print("ALLBRUTE : {}".format(allBrute))
         rootDir = os.path.join(self.rootDir, "ftp")  # /ftp directory
         try:
             os.mkdir(os.path.join(self.rootDir, "ftp"))  # Create /ftp directory
@@ -524,6 +662,7 @@ class nmapScan:
             f.write("Ftp anonymous : [WORKS]\n")
             f.close()
             if allBrute == 1:
+
                 self.tBruteFTP()
             else:
                 answ = input("[!] FTP anonymous works, do you still want to bruteforce it? (y/n)\n")
@@ -547,7 +686,15 @@ class nmapScan:
     
 
 
-        except:
+        except Exception as e:
+            if allBrute == 1:
+                self.tBruteFTP()
+            else:
+                answ = input("[!] FTP anonymous works, do you still want to bruteforce it? (y/n)\n")
+                if answ == "y":
+                    self.tBruteFTP()
+                else:
+                    pass
             f.write("Ftp anonymous : [FAILED]\n")
             f.close()
             pass
@@ -623,6 +770,7 @@ class nmapScan:
 
 if __name__ == '__main__':
     global allBrute
+    global host
     '''
     Argparse stuff (Comment out when debugging)
 
@@ -656,6 +804,7 @@ if __name__ == '__main__':
 
     import tkinter as tk
     root = tk.Tk()
+    root.protocol("WM_DELETE_WINDOW", lambda arg=root: on_exit(arg))
     app = NewprojectApp(root)
     app.run()
 
