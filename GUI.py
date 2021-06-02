@@ -12,6 +12,12 @@ import requests
 from tkinter import *
 from tkinter import messagebox
 from tkinter.ttk import *
+from functools import partial
+
+
+def option_selected(menu_item):
+    print(f"{menu_item} was clicked")
+
 
 '''
 CHECK BOX CUSTOM CLASS
@@ -43,8 +49,10 @@ class custom_checkbox_text(tk.Frame):
         else:
             self.checkbox.variable.set(self.checkbox['onvalue'])
         self.checkbox.focus_update()
+
     def select(self):
         self.checkbox.select()
+
     def get(self):
         return self.checkbox.variable.get()
 
@@ -131,13 +139,15 @@ class custom_checkbox(tk.Checkbutton):
 TOOLTIP CLASS
 '''
 
+
 class CreateToolTip(object):
     """
     create a tooltip for a given widget
     """
+
     def __init__(self, widget, text='widget info'):
-        self.waittime = 500     #miliseconds
-        self.wraplength = 180   #pixels
+        self.waittime = 500  # miliseconds
+        self.wraplength = 180  # pixels
         self.widget = widget
         self.text = text
         self.widget.bind("<Enter>", self.enter)
@@ -174,22 +184,22 @@ class CreateToolTip(object):
         self.tw.wm_overrideredirect(True)
         self.tw.wm_geometry("+%d+%d" % (x, y))
         label = tk.Label(self.tw, text=self.text, justify='left',
-                       background="#ffffff", relief='solid', borderwidth=1,
-                       wraplength = self.wraplength)
+                         background="#ffffff", relief='solid', borderwidth=1,
+                         wraplength=self.wraplength)
         label.pack(ipadx=1)
 
     def hidetip(self):
         tw = self.tw
-        self.tw= None
+        self.tw = None
         if tw:
             tw.destroy()
 
 
-global ibuster,inikto
+global ibuster, inikto
 ibuster = 0
 inikto = 0
 
-global busterList,niktoList
+global busterList, niktoList
 niktoList = []
 busterList = []
 
@@ -197,7 +207,6 @@ global smbCheckCmd
 global bruteSMBcmd
 global bruteFTPcmd
 global bruteSSHcmd
-global rootDir
 
 
 def btnAlotNikto(frame):
@@ -206,8 +215,8 @@ def btnAlotNikto(frame):
         inikto = 0
     else:
         pass
-    #print(inikto)
-    #print(frame["nikto"][inikto])
+    # print(inikto)
+    # print(frame["nikto"][inikto])
     raise_frame(frame["nikto"][inikto])
     inikto += 1
 
@@ -218,313 +227,343 @@ def btnAlotBuster(frame):
         ibuster = 0
     else:
         pass
-    #print(ibuster)
-    #print(frame["buster"][ibuster])
+    # print(ibuster)
+    # print(frame["buster"][ibuster])
     raise_frame(frame["buster"][ibuster])
     ibuster += 1
+
 
 def raise_frame(frame):
     frame.tkraise()
 
-class NewprojectApp:
-    def __init__(self,listing, master=None):
-        global rootDir
-        global spList
+class menuHandler:
+    def __init__(self, tkObj):
+        self.tkObj = tkObj
+        self.menu_creation()
+
+
+    def menu_creation(self):
+        self.menu_dict = {}
+        list = ['nikto','buster','brute_smb','brute_ssh','brute_ftp','spray_show','smb_checker']
+        for name in ('nikto','buster','brute_smb','brute_ssh','brute_ftp','spray_show','smb_checker'):
+            m = Menu(self.tkObj, tearoff=0)
+            m.add_command(label="Force Stop", command=partial(option_selected, 'fs', name))
+            m.add_command(label="Force Restart", command=partial(option_selected, 'fr', name))
+            self.menu_dict[name] = m
+
+
+
+    def nikto_event(self,event):
+        self.menu_dict['nikto'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['nikto'].focus_set()
+
+
+class mainWindow:
+    def __init__(self, tkObj, rootDir):
+
+        self.rootDir = rootDir
+        self.tkObj = tkObj
+
+        self.tkObj.protocol("WM_DELETE_WINDOW", self.onExit)  # Overwrite exit function for tkinter
+
         # build ui
-        self.mainFrame = ttk.Frame(master)
-        self.BtnFrame = ttk.Frame(self.mainFrame)
-        style = ttk.Style()
-        style.configure("Mine.TButton", background="red")
-        self.bactions = ttk.Button(self.BtnFrame, style="Mine.TButton")
-        self.bactions.configure(text='Actions')
-        self.bactions.pack(pady='50', side='bottom')
-        self.bactions.configure(command=self.actionWindow)
-        self.bsprayShow = ttk.Button(self.BtnFrame)
-        self.bsprayShow.configure(text='Spraying')
-        self.bsprayShow.pack(side='top')
-        self.bsprayShow.configure(command=lambda: raise_frame(self.fsprayShow))
-        self.bcredsWrite = ttk.Button(self.BtnFrame)
-        #self.bcredsWrite.configure(text='Write Creds')
-        #self.bcredsWrite.pack(side='top')
-        #self.bcredsWrite.configure(command=lambda:raise_frame(self.fcredsWrite))
-        self.bnikto = ttk.Button(self.BtnFrame)
-        self.bnikto.configure(text='Nikto')
-        self.bnikto.pack(side='top')
-        self.bnikto.configure(command=lambda:btnAlotNikto(self.frameDict))
-        self.bsshBrute = ttk.Button(self.BtnFrame)
-        self.bsshBrute.configure(text='SSH Brute')
-        self.bsshBrute.configure(command=lambda:raise_frame(self.fsshBrute))
-        self.bsshBrute.pack(side='top')
-        self.bftpBrute = ttk.Button(self.BtnFrame)
-        self.bftpBrute.configure(text='FTP Brute')
-        self.bftpBrute.configure(command=lambda:raise_frame(self.fFtpBrute))
-        self.bftpBrute.pack(side='top')
-        self.bsmbBrute = ttk.Button(self.BtnFrame)
-        self.bsmbBrute.configure(text='SMB Brute')
-        self.bsmbBrute.configure(command=lambda:raise_frame(self.fsmbBrute))
-        self.bsmbBrute.pack(side='top')
-        self.bdirbuster = ttk.Button(self.BtnFrame)
-        self.bdirbuster.configure(text='Dirbuster')
-        self.bdirbuster.configure(command=lambda:btnAlotBuster(self.frameDict))
-        self.bdirbuster.pack(side='top')
-        self.bsmbCheck = ttk.Button(self.BtnFrame)
-        self.bsmbCheck.configure(text='SMBCheck')
-        self.bsmbCheck.configure(command=lambda:raise_frame(self.fSmbChecker))
-        self.bsmbCheck.pack(side='top')
-        self.bNmapView = ttk.Button(self.BtnFrame)
-        self.bNmapView.configure(text='View NMAP')
-        self.bNmapView.configure(command=lambda:raise_frame(self.fNmap))
-        self.bNmapView.pack(side='top')
-        self.BtnFrame.configure(height='200', width='200')
-        self.BtnFrame.grid(column='0', row='1')
-        self.fcredsWrite = ttk.Frame(self.mainFrame)
-        self.fcredsWrite.configure(height='600', width='600')
-        self.fcredsWrite.grid(column='1', row='1')
-        self.fSmbChecker = ttk.Frame(self.mainFrame)
-        self.fSmbChecker.configure(height='600', width='600')
-        self.fSmbChecker.grid(column='1', row='1')
-        self.fsprayShow = ttk.Frame(self.mainFrame)
-        self.fsprayShow.configure(height='600', width='600')
-        self.fsprayShow.grid(column='1', row='1')
-        self.fNikto1 = ttk.Frame(self.mainFrame)
-        self.fNikto1.configure(height='600', width='600')
-        self.fNikto1.grid(column='1', row='1')
-        self.fNikto2 = ttk.Frame(self.mainFrame)
-        self.fNikto2.configure(height='600', width='600')
-        self.fNikto2.grid(column='1', row='1')
-        self.fNikto3 = ttk.Frame(self.mainFrame)
-        self.fNikto3.configure(height='600', width='600')
-        self.fNikto3.grid(column='1', row='1')
-        self.fNikto4 = ttk.Frame(self.mainFrame)
-        self.fNikto4.configure(height='600', width='600')
-        self.fNikto4.grid(column='1', row='1')
-        self.fbuster1= ttk.Frame(self.mainFrame)
-        self.fbuster1.configure(height='600', width='600')
-        self.fbuster1.grid(column='1', row='1')
-        self.fbuster2 = ttk.Frame(self.mainFrame)
-        self.fbuster2.configure(height='600', width='600')
-        self.fbuster2.grid(column='1', row='1')
-        self.fbuster3 = ttk.Frame(self.mainFrame)
-        self.fbuster3.configure(height='600', width='600')
-        self.fbuster3.grid(column='1', row='1')
-        self.fbuster4 = ttk.Frame(self.mainFrame)
-        self.fbuster4.configure(height='600', width='600')
-        self.fbuster4.grid(column='1', row='1')
-        self.fsshBrute = ttk.Frame(self.mainFrame)
-        self.fsshBrute.configure(height='600', width='600')
-        self.fsshBrute.grid(column='1', row='1')
-        self.fFtpBrute = ttk.Frame(self.mainFrame)
-        self.fFtpBrute.configure(height='600', width='600')
-        self.fFtpBrute.grid(column='1', row='1')
-        self.fsmbBrute = ttk.Frame(self.mainFrame)
-        self.fsmbBrute.configure(height='600', width='600')
-        self.fsmbBrute.grid(column='1', row='1')
+        self.create_styles()
+        self.create_frames()
+        self.create_buttons()
+        self.get_frames_id()
+        self.create_menus()
+        self.create_menus_binds()
+
+
+        ''''''
+
+        # Main widget
+        self.b_spray_show.pack_forget()
+        self.spList = []  # subprocess list so we can end each of them on exit.
+
+        self.spawn_xterms()
+
+
+    def create_menus(self):
+        self.menu_dict = {}
+        list = ['nikto','buster','brute_smb','brute_ssh','brute_ftp','spray_show','smb_checker']
+        for name in ('nikto','buster','brute_smb','brute_ssh','brute_ftp','spray_show','smb_checker'):
+            m = Menu(self.tkObj, tearoff=0)
+            m.add_command(label="Force Stop", command=partial(option_selected, 'fs', name))
+            m.add_command(label="Force Restart", command=partial(option_selected, 'fr', name))
+            self.menu_dict[name] = m
+
+    '''
+    Need to find a way to dynamically create the _event functions!
+    '''
+
+    def nikto_event(self, event):
+        self.menu_dict['nikto'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['nikto'].focus_set()
+
+
+    def dirbust_event(self, event):
+        self.menu_dict['buster'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['buster'].focus_set()
+
+
+    def smb_checker_event(self, event):
+        self.menu_dict['smb_checker'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['smb_checker'].focus_set()
+
+
+    def brute_smb_event(self, event):
+        self.menu_dict['brute_smb'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['brute_smb'].focus_set()
+
+
+    def brute_ftp_event(self, event):
+        self.menu_dict['brute_ftp'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['brute_ftp'].focus_set()
+
+
+    def brute_ssh_event(self, event):
+        self.menu_dict['brute_ssh'].tk_popup(event.x_root, event.y_root)
+        self.menu_dict['brute_ssh'].focus_set()
+
+
+    def create_menus_binds(self):
+        for btn,func in zip([self.b_dirbust,self.b_smb_checker,self.b_brute_smb,self.b_brute_ssh,self.b_brute_ftp,self.b_nikto],
+                            [self.dirbust_event,self.smb_checker_event,self.brute_smb_event,self.brute_ssh_event,self.brute_ftp_event,self.nikto_event]):
+            btn.bind("<Button-3>", func)
+
+    def get_frames_id(self):
+        self.niktoFrames = [self.frame_dict['nikto1'], self.frame_dict['nikto2'], self.frame_dict['nikto3'],
+                            self.frame_dict['nikto4']]
+        self.busterFrames = [self.frame_dict['buster1'], self.frame_dict['buster2'], self.frame_dict['buster3'],
+                             self.frame_dict['buster4']]
+        self.frameDict = {"nikto": self.niktoFrames, "buster": self.busterFrames}
+        self.idListBuster = [self.frame_dict['buster1'].winfo_id(), self.frame_dict['buster2'].winfo_id(),
+                             self.frame_dict['buster3'].winfo_id(),self.frame_dict['buster4'].winfo_id()]
+        self.idListNikto = [self.frame_dict['nikto1'].winfo_id(), self.frame_dict['nikto2'].winfo_id(),
+                             self.frame_dict['nikto3'].winfo_id(),self.frame_dict['nikto4'].winfo_id()]
+        self.frame_id_dict = {}
+        for frame in ('creds_write','spray_show','smb_checker','brute_smb','brute_ftp','brute_ssh','read_nmap'):
+            id = self.frame_dict[frame].winfo_id()
+            self.frame_id_dict[frame] = id
+        '''
+        self.idCredsWrite = self.frame_dict['creds_write'].winfo_id()
+        self.idSprayShow = self.frame_dict['spray_show'].winfo_id()
+        self.idSmbCheck = self.frame_dict['smb_checker'].winfo_id()
+        self.idSmbBrute = self.frame_dict['brute_smb'].winfo_id()
+        self.idFtpBrute = self.frame_dict['brute_ftp'].winfo_id()
+        self.idSshBrute = self.frame_dict['brute_ssh'].winfo_id()
+        self.idNamp = self.frame_dict['read_nmap'].winfo_id()
+        '''
+
+    def create_styles(self):
+        bactionStyle = ttk.Style()
+        bactionStyle.configure("Mine.TButton", background="red")
+
+    def create_frames(self):
+
+        self.frame_dict = {}
+
+        self.mainFrame = ttk.Frame()
         self.mainFrame.configure(height='200', width='200')
         self.mainFrame.pack(side='top')
-        self.fNmap = ttk.Frame(self.mainFrame)
-        self.fNmap.configure(height='600', width='600')
-        self.fNmap.grid(column='1', row='1')
-        self.niktoFrames = [self.fNikto1,self.fNikto2,self.fNikto3,self.fNikto4]
-        self.busterFrames = [self.fbuster1,self.fbuster2,self.fbuster3,self.fbuster4]
-        self.frameDict = {"nikto":self.niktoFrames,"buster":self.busterFrames}
-        self.idListBuster = [self.fbuster1.winfo_id(),self.fbuster2.winfo_id(),self.fbuster3.winfo_id(),self.fbuster4.winfo_id()]
-        self.idListNikto = [self.fNikto1.winfo_id(),self.fNikto2.winfo_id(),self.fNikto3.winfo_id(),self.fNikto4.winfo_id()]
-        self.idCredsWrite = self.fcredsWrite.winfo_id()
-        self.idSprayShow = self.fsprayShow.winfo_id()
-        self.idSmbCheck = self.fSmbChecker.winfo_id()
-        self.idSmbBrute = self.fsmbBrute.winfo_id()
-        self.idFtpBrute = self.fFtpBrute.winfo_id()
-        self.idSshBrute = self.fsshBrute.winfo_id()
-        self.idNamp = self.fNmap.winfo_id()
-        # Main widget
-        self.mainwindow = self.mainFrame
-        self.bsprayShow.pack_forget()
-        spList = [] # subprocess list so we can end each of them on exit.
-        print("BUSTER : {}\n".format(self.idListBuster))
-        print("NIKTO : {}\n".format(self.idListNikto))
-        print("CredsWrite : {}\n".format(self.idCredsWrite))
-        print("SprayShow : {}\n".format(self.idSprayShow))
-        print("SmbCheck : {}\n".format(self.idSmbCheck))
-        print("SmbBrute : {}\n".format(self.idSmbBrute))
-        print("FtpBrute : {}\n".format(self.idFtpBrute))
-        print("SshBrute : {}\n".format(self.idSshBrute))
 
+        self.btn_frame = ttk.Frame(self.mainFrame)
+        self.btn_frame.configure(height='200', width='200')
+        self.btn_frame.grid(column='0', row='1')
 
-        '''
-        Creds Write
-        '''
+        for name in ('creds_write','smb_checker','spray_show','nikto1','nikto2','nikto3',
+                'nikto4','buster1','buster2','buster3','buster4','brute_ssh','brute_ftp',
+                'brute_smb','read_nmap'):
+            frame = ttk.Frame(self.mainFrame)
+            frame.configure(height='600', width='600')
+            frame.grid(column='1', row='1')
+            self.frame_dict[name] = frame
 
+    def spawn_xterms(self):
+        self.nikto()
+        self.dirbuster()
+        self.readNmap()
+        self.smbCheck()
+        self.bruteSMB()
+        self.smbCheck()
+        self.bruteSSH()
+        self.bruteFTP()
+
+    def nikto(self):
         try:
-            print("Starting CredsWrite\n")
-            spList.append( subprocess.Popen(
-                ["xterm", "-into", str(self.idCredsWrite), "-geometry", "100x100", "-hold", "-e",
-                 "nano {}/credsWrite.txt".format(rootDir)],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
-        except:
-            self.bsmbCheck.pack_forget()
-
-
-
-        '''
-        DIRBUSTER 
-        '''
-
-        try:
-            print("Starting Dirbuster\n")
+            print("Starting Nikto\n")
             i = 0
-            for cmd in busterList:
-                spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100","-hold","-e","{} & wait".format(cmd)],
+            for cmd in niktoList:
+                self.spList.append(subprocess.Popen(
+                    ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
+                     "{} & wait".format(cmd)],
                     stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-                #print(cmd)
                 i += 1
             if i < 4:
                 newI = 4 - i
-                for notAv in range(0,newI):
+                for notAv in range(0, newI):
                     if i == 5:
                         break
                     else:
                         pass
-                    spList.append(subprocess.Popen(
+                    self.spList.append(subprocess.Popen(
+                        ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
+                         "echo '[!] Nothing here!'"],
+                        stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+                    i += 1
+        except:
+            self.b_nikto.pack_forget()
+
+    def smbCheck(self):
+        global smbCheckCmd
+        try:
+            print("Starting SmbCheck\n")
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['smb_checker']), "-geometry", "100x100", "-hold", "-e",
+                 "{} & wait".format(smbCheckCmd)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except:
+            self.b_smb_checker.pack_forget()
+
+    def bruteSMB(self):
+        global bruteSMBcmd
+        try:
+            print("Starting SmbBrute\n")
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['brute_smb']), "-geometry", "100x100", "-hold", "-e",
+                 "{} & wait".format(bruteSMBcmd)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except Exception as e:
+            # print(e)
+            self.b_brute_smb.pack_forget()
+
+    def bruteFTP(self):
+        global bruteFTPcmd
+        try:
+            print("Starting FtpBrute\n")
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['brute_ftp']), "-geometry", "100x100", "-hold", "-e",
+                 "{} & wait".format(bruteFTPcmd)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except Exception as e:
+            print(e)
+            self.b_brute_ftp.pack_forget()
+
+    def bruteSSH(self):
+        global bruteSSHcmd
+        try:
+            print("Starting SshBrute\n")
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['brute_ssh']), "-geometry", "100x100", "-hold", "-e",
+                 "{} & wait".format(bruteSSHcmd)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except:
+            self.b_brute_ssh.pack_forget()
+
+
+    def readNmap(self):
+        try:
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['read_nmap']), "-geometry", "100x100", "-hold", "-e",
+                 "cat {}/nmap/nmap_scan.txt".format(self.rootDir)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+        except:
+            pass
+
+
+    def dirbuster(self):
+        try:
+            print("Starting Dirbuster\n")
+            i = 0
+            for cmd in busterList:
+                self.spList.append(subprocess.Popen(
+                    ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100", "-hold", "-e",
+                     "{} & wait".format(cmd)],
+                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
+                # print(cmd)
+                i += 1
+            if i < 4:
+                newI = 4 - i
+                for notAv in range(0, newI):
+                    if i == 5:
+                        break
+                    else:
+                        pass
+                    self.spList.append(subprocess.Popen(
                         ["xterm", "-into", str(self.idListBuster[i]), "-geometry", "100x100", "-hold", "-e",
                          "echo '[!] Nothing here!'"],
                         stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-                    i +=1
-            '''
-            DIRBUSTER ^^^^^
-            '''
-
-            '''
-            NIKTO 
-            '''
-
-            try:
-                print("Starting Nikto\n")
-                i = 0
-                for cmd in niktoList:
-                    spList.append(subprocess.Popen(
-                        ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
-                         "{} & wait".format(cmd)],
-                        stdin=subprocess.PIPE, stdout=subprocess.PIPE))
                     i += 1
-                if i < 4:
-                    newI = 4 - i
-                    for notAv in range(0, newI):
-                        if i == 5:
-                            break
-                        else:
-                            pass
-                        spList.append(subprocess.Popen(
-                            ["xterm", "-into", str(self.idListNikto[i]), "-geometry", "100x100", "-hold", "-e",
-                             "echo '[!] Nothing here!'"],
-                            stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-                        i += 1
-            except:
-                pass
+        except:
+            self.b_dirbust.pack_forget()
+
+    def create_buttons(self):
+        # Sadly cant use a for loop here
+        self.b_nmap_read = ttk.Button(self.btn_frame)
+        self.b_nmap_read.configure(text='View NMAP')
+        self.b_nmap_read.configure(command=lambda: raise_frame(self.frame_dict['read_nmap']))
+        self.b_nmap_read.pack(side='top')
+
+        self.b_actions = ttk.Button(self.btn_frame, style="Mine.TButton")
+        self.b_actions.configure(text='Actions')
+        self.b_actions.pack(pady='50', side='bottom')
+        self.b_actions.configure(command=self.actionWindow)
+
+        self.b_spray_show = ttk.Button(self.btn_frame)
+        self.b_spray_show.configure(text='Spraying')
+        self.b_spray_show.pack(side='top')
+        self.b_spray_show.configure(command=lambda: raise_frame(self.frame_dict['spray_show']))
+
+        self.b_nikto = ttk.Button(self.btn_frame)
+        self.b_nikto.configure(text='Nikto')
+        self.b_nikto.pack(side='top')
+        self.b_nikto.configure(command=lambda: btnAlotNikto(self.frameDict))
+
+        self.b_brute_ssh = ttk.Button(self.btn_frame)
+        self.b_brute_ssh.configure(text='SSH Brute')
+        self.b_brute_ssh.configure(command=lambda: raise_frame(self.frame_dict['brute_ssh']))
+        self.b_brute_ssh.pack(side='top')
+
+        self.b_brute_ftp = ttk.Button(self.btn_frame)
+        self.b_brute_ftp.configure(text='FTP Brute')
+        self.b_brute_ftp.configure(command=lambda: raise_frame(self.frame_dict['brute_ftp']))
+        self.b_brute_ftp.pack(side='top')
+
+        self.b_brute_smb = ttk.Button(self.btn_frame)
+        self.b_brute_smb.configure(text='SMB Brute')
+        self.b_brute_smb.configure(command=lambda: raise_frame(self.frame_dict['brute_smb']))
+        self.b_brute_smb.pack(side='top')
+
+        self.b_dirbust = ttk.Button(self.btn_frame)
+        self.b_dirbust.configure(text='Dirbuster')
+        self.b_dirbust.configure(command=lambda: btnAlotBuster(self.frameDict))
+        self.b_dirbust.pack(side='top')
+
+        self.b_smb_checker = ttk.Button(self.btn_frame)
+        self.b_smb_checker.configure(text='SMBCheck')
+        self.b_smb_checker.configure(command=lambda: raise_frame(self.frame_dict['smb_checker']))
+        self.b_smb_checker.pack(side='top')
 
 
-            '''
-            NIKTO ^^^^
-            '''
-
-            '''
-            SMBCHECK
-            '''
-            global smbCheckCmd
-            try:
-                print("Starting SmbCheck\n")
-                spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idSmbCheck), "-geometry", "100x100", "-hold", "-e", "{} & wait".format(smbCheckCmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-            except:
-                self.bsmbCheck.pack_forget()
-
-            '''
-            SMB BRUTE
-            '''
-
-            global bruteSMBcmd
-            try:
-                print("Starting SmbBrute\n")
-                spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idSmbBrute), "-geometry", "100x100", "-hold", "-e", "{} & wait".format(bruteSMBcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-            except Exception as e:
-                #print(e)
-                self.bsmbBrute.pack_forget()
-
-            '''
-            FTP BRUTE
-            '''
-
-            global bruteFTPcmd
-            try:
-                print("Starting FtpBrute\n")
-                spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idFtpBrute), "-geometry", "100x100", "-hold", "-e",
-                     "{} & wait".format(bruteFTPcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-            except Exception as e:
-                #print(e)
-                self.bftpBrute.pack_forget()
-
-            '''
-            SSH BRUTE
-            '''
-
-            global bruteSSHcmd
-            try:
-                print("Starting SshBrute\n")
-                spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idSshBrute), "-geometry", "100x100", "-hold", "-e",
-                     "{} & wait".format(bruteSSHcmd)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-            except:
-                self.bsshBrute.pack_forget()
-
-            '''
-            NMAP READ
-            '''
-            try:
-                 spList.append(subprocess.Popen(
-                    ["xterm", "-into", str(self.idNamp), "-geometry", "100x100", "-hold", "-e", "cat {}/nmap/nmap_scan.txt".format(rootDir)],
-                    stdin=subprocess.PIPE, stdout=subprocess.PIPE))
-            except:
-                pass
-            self.spList = spList # subprocess list so we can end each of them on exit.
-            '''
-            p2 = subprocess.Popen(
-                ["xterm", "-into", str(self.idList[1]), "-geometry", "100x100","-hold", "-e", "ping -c 4 localhost"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            p3 = subprocess.Popen(
-                ["xterm", "-into", str(self.idList[2]), "-geometry", "100x100"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            p4 = subprocess.Popen(
-                ["xterm", "-into", str(self.idList[3]), "-geometry", "100x100", "-e", "ping localhost"],
-                stdin=subprocess.PIPE, stdout=subprocess.PIPE)
-            '''
-        except FileNotFoundError:
-            showwarning("Error", "xterm is not installed")
-            raise SystemExit
-
-    def sprayingShow(self):
-        self.bsprayShow.pack()
-        self.mainwindow.lift()
-        #print("Running sprayingShow")
+    def spraying_show(self):
+        self.b_spray_show.pack()
+        self.mainFrame.lift()
+        # print("Running sprayingShow")
         global sprayingCmd
         try:
             self.sprayingCmd = sprayingCmd
         except:
-            messagebox.showerror("Error",message="You need to set the credentials first.")
+            messagebox.showerror("Error", message="You need to set the credentials first.")
             self.actionWindow.lift()
-        #print(self.sprayingCmd)
+        # print(self.sprayingCmd)
         try:
-            spList.append(subprocess.Popen(
-                ["xterm", "-into", str(self.idSprayShow), "-geometry", "100x100", "-hold", "-e",
+            self.spList.append(subprocess.Popen(
+                ["xterm", "-into", str(self.frame_id_dict['spray_show']), "-geometry", "100x100", "-hold", "-e",
                  "{} & wait".format(self.sprayingCmd)],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE))
         except:
-            self.bsshBrute.pack_forget()
+            self.b_spray_show.pack_forget()
 
     def onExit(self):
         for service in self.spList:
@@ -537,7 +576,7 @@ class NewprojectApp:
         try:
             if actionWindow.state() == "normal": actionWindow.lift()
         except:
-            actionWindow = Toplevel(self.mainwindow)
+            actionWindow = Toplevel(self.mainFrame)
             actionWindow.frame2 = ttk.Frame(actionWindow)
             actionWindow.atctions = ttk.Label(actionWindow.frame2)
             actionWindow.atctions.configure(text='Action Launcher')
@@ -551,12 +590,12 @@ class NewprojectApp:
             actionWindow.frame4 = ttk.Frame(actionWindow)
             actionWindow.bspray = ttk.Button(actionWindow.frame4)
             actionWindow.bspray.configure(text='Sprayer')
-            actionWindow.bspray.configure(command=self.sprayingShow)
+            actionWindow.bspray.configure(command=self.spraying_show)
             actionWindow.bspray.pack(pady='20', side='top')
             actionWindow.bCredsWrite = ttk.Button(actionWindow.frame4)
             actionWindow.bCredsWrite.configure(text='Write Credentials')
             actionWindow.bCredsWrite.configure(command=self.writeCredsWindows)
-            actionWindow.bCredsWrite.pack(pady='20',side='top')
+            actionWindow.bCredsWrite.pack(pady='20', side='top')
             actionWindow.button4 = ttk.Button(actionWindow.frame4)
             actionWindow.button4.configure(state='disabled', text='Launch owasp zap')
             actionWindow.button4.pack(side='top')
@@ -567,11 +606,10 @@ class NewprojectApp:
 
     def writeCredsWindows(self):
         global writeCredsWindow
-        global rootDir
         global sprayMode
         self.mode = tk.IntVar()
-        if os.path.exists("{}/credsWrite.txt".format(rootDir)):
-            with open("{}/credsWrite.txt".format(rootDir), "r") as d:
+        if os.path.exists("{}/credsWrite.txt".format(self.rootDir)):
+            with open("{}/credsWrite.txt".format(self.rootDir), "r") as d:
                 data = d.read()
         else:
             data = '''admin\nroot\nuser\npassword'''
@@ -587,22 +625,27 @@ class NewprojectApp:
             self.writeCredsWindow.sprayList.insert('0.0', _text_)
             self.writeCredsWindow.sprayList.grid(column='0', row='0')
             self.writeCredsWindow.frame8 = ttk.Frame(self.writeCredsWindow.frame5)
-            self.writeCredsWindow.checkPassOnly = custom_checkbox_text(self.writeCredsWindow.frame8,"black","Password Only",onvalue=1,variable=self.mode)
-            #self.writeCredsWindow.checkPassOnly.configure(text='Password Only')
+            self.writeCredsWindow.checkPassOnly = custom_checkbox_text(self.writeCredsWindow.frame8, "black",
+                                                                       "Password Only", onvalue=1, variable=self.mode)
+            # self.writeCredsWindow.checkPassOnly.configure(text='Password Only')
             self.writeCredsWindow.checkPassOnly.pack(side='bottom')
-            self.writeCredsWindow.checkuserOnly = custom_checkbox_text(self.writeCredsWindow.frame8,"black","Username Only",onvalue=2,variable=self.mode)
-            #self.writeCredsWindow.checkuserOnly.configure(text='Username Only')
+            self.writeCredsWindow.checkuserOnly = custom_checkbox_text(self.writeCredsWindow.frame8, "black",
+                                                                       "Username Only", onvalue=2, variable=self.mode)
+            # self.writeCredsWindow.checkuserOnly.configure(text='Username Only')
             self.writeCredsWindow.checkuserOnly.pack(side='bottom')
-            self.writeCredsWindow.checkCombo = custom_checkbox_text(self.writeCredsWindow.frame8,"black","Combo Mode (user:pass)",onvalue=3,variable=self.mode)
-            #self.writeCredsWindow.checkCombo.configure(text='Combo Mode (user:pass)')
+            self.writeCredsWindow.checkCombo = custom_checkbox_text(self.writeCredsWindow.frame8, "black",
+                                                                    "Combo Mode (user:pass)", onvalue=3,
+                                                                    variable=self.mode)
+            # self.writeCredsWindow.checkCombo.configure(text='Combo Mode (user:pass)')
             self.writeCredsWindow.checkCombo.pack(side='bottom')
-            self.writeCredsWindow.checkLP = custom_checkbox_text(self.writeCredsWindow.frame8,"black","User as passowrd",onvalue=4,variable=self.mode)
-            #self.writeCredsWindow.checkLP.configure(text='User as passowrd')
+            self.writeCredsWindow.checkLP = custom_checkbox_text(self.writeCredsWindow.frame8, "black",
+                                                                 "User as passowrd", onvalue=4, variable=self.mode)
+            # self.writeCredsWindow.checkLP.configure(text='User as passowrd')
             self.writeCredsWindow.checkLP.pack(side='bottom')
             ttpUserOnly = CreateToolTip(self.writeCredsWindow.checkuserOnly,
-                                             "This will use the usernames you provide and our wordlist as passwords")
+                                        "This will use the usernames you provide and our wordlist as passwords")
             ttpPassOnly = CreateToolTip(self.writeCredsWindow.checkPassOnly,
-                                             "This will use the passwords you provide and our wordlist as usernames")
+                                        "This will use the passwords you provide and our wordlist as usernames")
             self.writeCredsWindow.label2 = ttk.Label(self.writeCredsWindow.frame8)
             self.writeCredsWindow.label2.configure(text='Spraying Options')
             self.writeCredsWindow.label2.pack(side='top')
@@ -636,13 +679,17 @@ class NewprojectApp:
             except:
                 pass
 
+    def onExit(self):
+        if messagebox.askokcancel("Quit", "Are you sure you want to quit? Stuff might break"):
+            for service in self.spList:
+                service.terminate()
+            self.tkObj.destroy()
 
     def save(self):
-        global rootDir
         global sprayMode
         global result
         if self.mode.get() == 0:
-            messagebox.showerror("Missing Parameters",message="Please select 1 spraying mode.")
+            messagebox.showerror("Missing Parameters", message="Please select 1 spraying mode.")
             self.writeCredsWindow.lift()
         else:
             if self.mode.get() == 1:
@@ -657,39 +704,42 @@ class NewprojectApp:
                 messagebox.showerror("Error", message="Something wrong happened.")
                 self.writeCredsWindow.lift()
             result.createCommandSpraying()
-            with open("{}/credsWrite.txt".format(rootDir), "w+") as f:
+            with open("{}/credsWrite.txt".format(self.rootDir), "w+") as f:
                 f.write(self.writeCredsWindow.sprayList.get("1.0", END))
                 f.close()
-
 
     def lol(self):
         pass
 
     def run(self):
-        self.mainwindow.mainloop()
+        self.mainFrame.mainloop()
 
 
+'''
 def on_exit(root):
     global spList
     if messagebox.askokcancel("Quit", "Are you sure you want to quit? Stuff might break"):
         for service in spList:
             service.terminate()
         root.destroy()
+'''
+
 
 def doNikto(logfile, url):
     global niktoList
-    newlogfile = logfile.replace('dirbust','nikto')
+    newlogfile = logfile.replace('dirbust', 'nikto')
     rootfile = logfile.split("dirbust")[0]
-    #print(rootfile)
-    #print(newlogfile)
+    # print(rootfile)
+    # print(newlogfile)
     try:
         os.mkdir("{}/nikto".format(rootfile))
     except:
         pass
-    #cords =cordsManager("nikto")
-    command = "nikto -host={} -o {}".format(url,newlogfile)
+    # cords =cordsManager("nikto")
+    command = "nikto -host={} -o {}".format(url, newlogfile)
     niktoList.append(command)
-    #os.system("xterm -T 'Nikto!' -geometry {} -e {}".format(cords,command))
+    # os.system("xterm -T 'Nikto!' -geometry {} -e {}".format(cords,command))
+
 
 def commentGrabber(logfile, host, dir):
     global commentsExists
@@ -731,20 +781,23 @@ def commentGrabber(logfile, host, dir):
 
 def bust(url, wordlist, logfile, dir):  # THIS IS THE THREADED FUNCTION
     global busterList
-    command = "python3 ./busterScript.py --url {} --wordlist {} --output {} --rootDir {}".format(url, wordlist, logfile,dir)
+    command = "python3 ./busterScript.py --url {} --wordlist {} --output {} --rootDir {}".format(url, wordlist, logfile,
+                                                                                                 dir)
     busterList.append(command)
-    #cords = cordsManager("dirbust")
-    #os.system("xterm -T 'dirbuster!' -geometry {} -e {}".format(cords,command))
+    # cords = cordsManager("dirbust")
+    # os.system("xterm -T 'dirbuster!' -geometry {} -e {}".format(cords,command))
 
 
 def dirbuster(urls, wordlist, logfiles, dir):  # This starts the threads, passing it all it needs.
     i = 0
     for url in urls:
         tnikto = threading.Thread(target=doNikto, args=(logfiles[i], url,))  # FOR NIKTO!
-        tdirbust = threading.Thread(target=bust, args=(url, wordlist, logfiles[i], dir)) # FOR DIRBUST!
+        tdirbust = threading.Thread(target=bust, args=(url, wordlist, logfiles[i], dir))  # FOR DIRBUST!
         tdirbust.start()
         tnikto.start()
         i += 1
+
+
 '''
 def bruteSSH(rootDir, host):
     try:
@@ -766,11 +819,15 @@ def bruteSMB(rootDir, host):
     os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords,command))
 
 '''
-def smbCheck(host,rootDir):
+
+
+def smbCheck(host, rootDir):
     global smbCheckCmd
-    command = "python3 smbCheck.py --host {} --output {}".format(host,rootDir)
+    command = "python3 smbCheck.py --host {} --output {}".format(host, rootDir)
     smbCheckCmd = command
-    #os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+1080 -hold -e {}".format(command))
+    # os.system("xterm -T 'SMB Checker!' -geometry 90x30+0+1080 -hold -e {}".format(command))
+
+
 '''
 def bruteFTP(rootDir, host):
     try:
@@ -781,6 +838,7 @@ def bruteFTP(rootDir, host):
     os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
 
 '''
+
 
 class nmapScan:
     '''
@@ -798,21 +856,60 @@ class nmapScan:
         except:
             pass
         self.rootDir = rootDir  # This is where all the files of the scan will be outputed
-        #self.webServices = ["Microsoft IIS httpd", "Apache httpd", "nginx", "Apache Tomcat", "MiniServ",
-         #                   "lighttpd","Microsoft HTTPAPI httpd","http-proxy",'httpd','http']
-        self.webServices = ["http-proxy",'httpd','http']
+        # self.webServices = ["Microsoft IIS httpd", "Apache httpd", "nginx", "Apache Tomcat", "MiniServ",
+        #                   "lighttpd","Microsoft HTTPAPI httpd","http-proxy",'httpd','http']
+        self.webServices = ["http-proxy", 'httpd', 'http']
         # Let's only do common webservices.
         self.host = host
         self.nmap = nmap3.Nmap()
         if debug == 1:
-            self.result = {'192.168.174.55': {'osmatch': {}, 'ports': [{'protocol': 'tcp', 'portid': '21', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'ftp', 'product': 'FileZilla ftpd', 'version': '0.9.41 beta', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '135', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'msrpc', 'product': 'Microsoft Windows RPC', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '139', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'netbios-ssn', 'product': 'Microsoft Windows netbios-ssn', 'ostype': 'Windows', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '443', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43', 'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'tunnel': 'ssl', 'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []}, {'protocol': 'tcp', 'portid': '445', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'microsoft-ds', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '3306', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'mysql', 'servicefp': 'SF-Port3306-TCP:V=7.91%I=7%D=6/1%Time=60B66D74%P=x86_64-pc-linux-gnu%r(RTSPRequest,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(DNSStatusRequestTCP,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(Help,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TLSSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server");', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '5040', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'unknown', 'method': 'table', 'conf': '3'}, 'scripts': []}, {'protocol': 'tcp', 'portid': '7680', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127', 'service': {'name': 'tcpwrapped', 'method': 'probed', 'conf': '8'}, 'scripts': []}], 'hostname': [], 'macaddress': None, 'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '127'}}, 'stats': {'scanner': 'nmap', 'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/testing/reconScript/nmap/nmap_scan.txt 192.168.174.55', 'start': '1622568153', 'startstr': 'Tue Jun  1 13:22:33 2021', 'version': '7.91', 'xmloutputversion': '1.05'}, 'runtime': {'time': '1622568463', 'timestr': 'Tue Jun  1 13:27:43 2021', 'summary': 'Nmap done at Tue Jun  1 13:27:43 2021; 1 IP address (1 host up) scanned in 309.55 seconds', 'elapsed': '309.55', 'exit': 'success'}}
+            self.result = {'192.168.56.55': {'osmatch': {}, 'ports': [
+                {'protocol': 'tcp', 'portid': '21', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'ftp', 'product': 'FileZilla ftpd', 'version': '0.9.41 beta', 'ostype': 'Windows',
+                             'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}],
+                 'scripts': []},
+                {'protocol': 'tcp', 'portid': '80', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43',
+                             'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'method': 'probed', 'conf': '10'},
+                 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []},
+                {'protocol': 'tcp', 'portid': '135', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'msrpc', 'product': 'Microsoft Windows RPC', 'ostype': 'Windows',
+                             'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}],
+                 'scripts': []},
+                {'protocol': 'tcp', 'portid': '139', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'netbios-ssn', 'product': 'Microsoft Windows netbios-ssn', 'ostype': 'Windows',
+                             'method': 'probed', 'conf': '10'}, 'cpe': [{'cpe': 'cpe:/o:microsoft:windows'}],
+                 'scripts': []},
+                {'protocol': 'tcp', 'portid': '443', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'http', 'product': 'Apache httpd', 'version': '2.4.43',
+                             'extrainfo': '(Win64) OpenSSL/1.1.1g PHP/7.4.6', 'tunnel': 'ssl', 'method': 'probed',
+                             'conf': '10'}, 'cpe': [{'cpe': 'cpe:/a:apache:http_server:2.4.43'}], 'scripts': []},
+                {'protocol': 'tcp', 'portid': '445', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'microsoft-ds', 'method': 'table', 'conf': '3'}, 'scripts': []},
+                {'protocol': 'tcp', 'portid': '3306', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'mysql',
+                             'servicefp': 'SF-Port3306-TCP:V=7.91%I=7%D=6/1%Time=60B66D74%P=x86_64-pc-linux-gnu%r(RTSPRequest,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(DNSStatusRequestTCP,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(Help,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server")%r(TLSSessionReq,4D,"I\\0\\0\\x01\\xffj\\x04Host\\x20\'192\\.168\\.49\\.174\'\\x20is\\x20not\\x20allowed\\x20to\\x20connect\\x20to\\x20this\\x20MariaDB\\x20server");',
+                             'method': 'table', 'conf': '3'}, 'scripts': []},
+                {'protocol': 'tcp', 'portid': '5040', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'unknown', 'method': 'table', 'conf': '3'}, 'scripts': []},
+                {'protocol': 'tcp', 'portid': '7680', 'state': 'open', 'reason': 'syn-ack', 'reason_ttl': '127',
+                 'service': {'name': 'tcpwrapped', 'method': 'probed', 'conf': '8'}, 'scripts': []}], 'hostname': [],
+                                             'macaddress': None,
+                                             'state': {'state': 'up', 'reason': 'echo-reply', 'reason_ttl': '127'}},
+                           'stats': {'scanner': 'nmap',
+                                     'args': '/usr/bin/nmap -oX - -sV -p- -oN /home/Kyand/testing/reconScript/nmap/nmap_scan.txt 192.168.174.55',
+                                     'start': '1622568153', 'startstr': 'Tue Jun  1 13:22:33 2021', 'version': '7.91',
+                                     'xmloutputversion': '1.05'},
+                           'runtime': {'time': '1622568463', 'timestr': 'Tue Jun  1 13:27:43 2021',
+                                       'summary': 'Nmap done at Tue Jun  1 13:27:43 2021; 1 IP address (1 host up) scanned in 309.55 seconds',
+                                       'elapsed': '309.55', 'exit': 'success'}}
         else:
             print("[!] nmap scan is running...\n")
             self.result = self.nmap.nmap_version_detection(self.host, args="-p- -oN {}/nmap/nmap_scan.txt".format(
                 rootDir))  # -sV -p- -oN (rootDir/nmap_scant.txt) scan
             print(self.result)
             print("[!] nmap scan has completed!\n")
-            #print(self.result)
+            # print(self.result)
         self.openPorts = []
         for ports in self.result[self.host]["ports"]:
             self.openPorts.append(ports)
@@ -828,13 +925,11 @@ class nmapScan:
                 pass
         stringServices = ""
         for service in services:
-            stringServices+="{},".format(service)
-        #print(stringServices)
+            stringServices += "{},".format(service)
 
-        #print(services)
-        sprayingCmd = "python3 sprayer.py {}/credsWrite.txt {} {} {} '{}'".format(rootDir,self.host,stringServices,rootDir,sprayMode)
-        print(sprayingCmd)
-        #print(sprayingCmd)
+        sprayingCmd = "python3 sprayer.py {}/credsWrite.txt {} {} {} '{}'".format(rootDir, self.host, stringServices,
+                                                                                  rootDir, sprayMode)
+
 
     def tbruteSMB(self):
         global bruteSMBcmd
@@ -844,8 +939,8 @@ class nmapScan:
             pass
         bruteSMBcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} smb -o {}/brute/SMB.txt -I".format(
             host, rootDir)
-        #print(bruteSMBcmd)
-        #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
+        # print(bruteSMBcmd)
+        # os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
     def tsmbCheck(self):
         global smbCheckCmd
@@ -880,7 +975,7 @@ class nmapScan:
                     else:
                         pass
                 pass
-            
+
             elif number == "445":
                 if allBrute == 1:
                     self.tbruteSMB()
@@ -918,7 +1013,7 @@ class nmapScan:
             pass
         bruteSSHcmd = "hydra -t 1 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -V {} ssh -o {}/brute/SSH.txt -I".format(
             self.host, self.rootDir)
-        #os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
+        # os.system("xterm -T 'bruteforcing SMB!' -geometry 100x100 -hold -e {}".format(cords, command))
 
     def tBruteFTP(self):
         global bruteFTPcmd
@@ -928,8 +1023,9 @@ class nmapScan:
             pass
         bruteFTPcmd = "hydra -s 21 -t 20 -L ./wordlist/top-usernames-shortlist.txt -P ./wordlist/UserPassCombo-Jay.txt -vV ftp://{} -o {}/brute/FTP.txt -I ".format(
             self.host, self.rootDir)
-        #print(bruteFTPcmd)
-        #os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
+        # print(bruteFTPcmd)
+        # os.system("xterm -T 'bruteforcing FTP!' -geometry 90x30+1920+1080 -e {}".format(command))
+
     '''
     Do regular FTP checks (check anon login, check perms)
 
@@ -937,7 +1033,7 @@ class nmapScan:
 
     def checkFTP(self):
         global allBrute
-        #print("ALLBRUTE : {}".format(allBrute))
+        # print("ALLBRUTE : {}".format(allBrute))
         rootDir = os.path.join(self.rootDir, "ftp")  # /ftp directory
         try:
             os.mkdir(os.path.join(self.rootDir, "ftp"))  # Create /ftp directory
@@ -971,7 +1067,7 @@ class nmapScan:
                 f = open("{}/results.txt".format(rootDir), "a")
                 f.write("File upload : [FAILED]\n")
                 f.close()
-    
+
 
 
         except Exception as e:
@@ -1097,13 +1193,10 @@ if __name__ == '__main__':
         pass
     wordlist = args.wordlist
     result = nmapScan(host, rootDir)
-    result.check(wordlist)# Regular portScan
-
-
+    result.check(wordlist)  # Regular portScan
 
     import tkinter as tk
-    root = tk.Tk()
-    root.protocol("WM_DELETE_WINDOW", lambda arg=root: on_exit(arg)) # Overwrite exit function for tkinter
-    app = NewprojectApp(root)
-    app.run()
 
+    root = tk.Tk()
+    app = mainWindow(root, rootDir)
+    app.run()
