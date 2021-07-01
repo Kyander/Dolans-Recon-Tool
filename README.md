@@ -8,13 +8,7 @@ pip3 install -r requirements.txt
 
 # Usage :
 
-1. Make sure to run main.py in it's directory.
-2. python3 main.py --host (IP) --output (full path of desired output folder, example : /home/user/here/) --wordlist (path to wordlist to use for gobuster)
+1. Make sure to run GUI.py in it's directory.
+2. python3 GUI.py --host (IP) --output (full path of desired output folder, example : /home/user/here/) --wordlist (path to wordlist to use for gobuster) -a (-a is **REQUIRED** in order for it to run)
+ 
 
-
-
-# GUI
-
-run GUI.py in order to use the new GUI for autoRecon. 
-
-**Warning :** It's really unstable.
